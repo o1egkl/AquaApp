@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>3D Аквариум — Реалистичный подводный мир</title>
+  <title>Aquarium 3D Ultra — Realistic Underwater World</title>
   <style>
     * {
       box-sizing: border-box;
@@ -318,7 +318,8 @@
       .top-actions {
         gap: 6px;
       }
-      .action-btn {
+      .action-btn,
+      .lang-dropdown-btn {
         padding: 7px 10px;
         font-size: 11px;
         min-height: 34px;
@@ -380,43 +381,133 @@
       }
     }
 
-    /* Language Selector */
-    .lang-selector {
-      display: flex;
+    /* Language Dropdown Menu */
+    .lang-dropdown {
+      position: relative;
+      display: inline-block;
+      pointer-events: auto;
+    }
+    .lang-dropdown-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(56, 189, 248, 0.28);
+      color: #e2e8f0;
+      padding: 7px 11px;
       border-radius: 12px;
-      padding: 3px;
-      gap: 2px;
-      pointer-events: auto;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
       min-height: 38px;
-      align-items: center;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      user-select: none;
     }
-    .lang-btn {
+    .lang-dropdown-btn:hover {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: #38bdf8;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+    }
+    .lang-dropdown-btn:active {
+      transform: scale(0.97);
+    }
+    .lang-dropdown-btn .lang-flag {
+      font-size: 14px;
+      line-height: 1;
+    }
+    .lang-dropdown-btn .lang-code {
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .lang-dropdown-btn .lang-arrow {
+      font-size: 9px;
+      opacity: 0.7;
+      transition: transform 0.2s ease;
+      display: inline-block;
+    }
+    .lang-dropdown.open .lang-dropdown-btn .lang-arrow {
+      transform: rotate(180deg);
+    }
+    .lang-dropdown.open .lang-dropdown-btn {
+      border-color: #38bdf8;
+      background: rgba(30, 41, 59, 0.95);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+    }
+
+    .lang-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 145px;
+      background: rgba(11, 20, 38, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 12px;
+      padding: 5px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 16px rgba(56, 189, 248, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-6px);
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+      pointer-events: none;
+    }
+    .lang-dropdown.open .lang-dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .lang-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
       background: transparent;
       border: none;
       color: #94a3b8;
-      padding: 5px 9px;
+      padding: 8px 10px;
       border-radius: 8px;
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
-      line-height: 1;
+      transition: all 0.15s ease;
+      text-align: left;
     }
-    .lang-btn:hover {
-      color: #38bdf8;
+    .lang-option:hover {
+      background: rgba(56, 189, 248, 0.12);
+      color: #f0f9ff;
     }
-    .lang-btn.active {
-      background: rgba(56, 189, 248, 0.28);
+    .lang-option.active {
+      background: rgba(56, 189, 248, 0.22);
       color: #38bdf8;
       font-weight: 700;
     }
-    .lang-btn:active {
-      transform: scale(0.96);
+    .lang-option .option-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-option .option-flag {
+      font-size: 14px;
+    }
+    .lang-option .option-check {
+      font-size: 12px;
+      color: #38bdf8;
+      opacity: 0;
+    }
+    .lang-option.active .option-check {
+      opacity: 1;
     }
 
     /* RTL Support for Hebrew */
@@ -435,6 +526,13 @@
     body.rtl .fish-info-item {
       direction: rtl;
     }
+    body.rtl .lang-dropdown-menu {
+      right: auto;
+      left: 0;
+    }
+    body.rtl .lang-option {
+      text-align: right;
+    }
   </style>
 
   <!-- Three.js & Controls -->
@@ -450,84 +548,109 @@
       <div class="brand-icon">🐠</div>
       <div class="brand-text">
         <h1>Aquarium 3D Ultra</h1>
-        <p id="brand-subtitle">Биотоп тропического рифа • Анатомические 3D-рыбы</p>
+        <p id="brand-subtitle">Tropical Reef Biotope • Anatomical 3D Fish</p>
       </div>
     </div>
 
     <div class="top-actions">
-      <!-- Language Switcher -->
-      <div class="lang-selector" id="lang-selector">
-        <button class="lang-btn active" data-lang="ru">RU</button>
-        <button class="lang-btn" data-lang="en">EN</button>
-        <button class="lang-btn" data-lang="he">עב</button>
+      <!-- Language Dropdown Switcher -->
+      <div class="lang-dropdown" id="lang-dropdown">
+        <button class="lang-dropdown-btn" id="lang-dropdown-btn" aria-haspopup="true" aria-expanded="false" title="Language / Язык / שפה">
+          <span class="lang-flag" id="lang-current-flag">🇺🇸</span>
+          <span class="lang-code" id="lang-current-code">EN</span>
+          <span class="lang-arrow">▾</span>
+        </button>
+        <div class="lang-dropdown-menu" id="lang-dropdown-menu" role="menu">
+          <button class="lang-option active" data-lang="en" role="menuitem">
+            <span class="option-left">
+              <span class="option-flag">🇺🇸</span>
+              <span class="option-name">English</span>
+            </span>
+            <span class="option-check">✓</span>
+          </button>
+          <button class="lang-option" data-lang="ru" role="menuitem">
+            <span class="option-left">
+              <span class="option-flag">🇷🇺</span>
+              <span class="option-name">Русский</span>
+            </span>
+            <span class="option-check">✓</span>
+          </button>
+          <button class="lang-option" data-lang="he" role="menuitem">
+            <span class="option-left">
+              <span class="option-flag">🇮🇱</span>
+              <span class="option-name">עברית</span>
+            </span>
+            <span class="option-check">✓</span>
+          </button>
+        </div>
       </div>
 
       <button class="action-btn" id="feed-btn">
-        <span>🍤</span> <span class="btn-text" id="feed-text">Корм</span>
+        <span>🍤</span> <span class="btn-text" id="feed-text">Feed</span>
       </button>
       <button class="action-btn" id="add-fish-btn">
-        <span>➕</span> <span class="btn-text" id="add-fish-text">Рыбка</span>
+        <span>➕</span> <span class="btn-text" id="add-fish-text">Add Fish</span>
       </button>
       <button class="action-btn" id="sound-btn">
-        <span id="sound-icon">🔈</span> <span class="btn-text" id="sound-text">Звук</span>
+        <span id="sound-icon">🔈</span> <span class="btn-text" id="sound-text">Sound</span>
       </button>
       <button class="action-btn" id="info-toggle-btn">
-        <span>📊</span> <span class="btn-text" id="info-text">Инфо</span>
+        <span>📊</span> <span class="btn-text" id="info-text">Stats</span>
       </button>
       <button class="action-btn" id="download-btn" style="background: rgba(14, 165, 233, 0.35); border-color: #38bdf8;">
-        <span>💾</span> <span class="btn-text" id="download-text">Скачать</span>
+        <span>💾</span> <span class="btn-text" id="download-text">Download</span>
       </button>
     </div>
   </div>
 
   <!-- Hint -->
   <div class="interaction-hint" id="interaction-hint">
-    ✨ Нажмите в любом месте для кормления • Зажмите ЛКМ для вращения камеры
+    ✨ Click anywhere to feed • Hold Left Click to rotate camera
   </div>
 
   <!-- Bottom Control Dock -->
   <div class="ui-container bottom-dock">
     <div class="dock-group">
-      <button class="dock-btn active" data-light="day" id="dock-day">☀️ День</button>
-      <button class="dock-btn" data-light="sunset" id="dock-sunset">🌅 Закат</button>
-      <button class="dock-btn" data-light="night" id="dock-night">🌙 Неон</button>
+      <button class="dock-btn active" data-light="day" id="dock-day">☀️ Day</button>
+      <button class="dock-btn" data-light="sunset" id="dock-sunset">🌅 Sunset</button>
+      <button class="dock-btn" data-light="night" id="dock-night">🌙 Neon</button>
     </div>
     <div class="dock-divider"></div>
     <div class="dock-group">
-      <button class="dock-btn active" data-cam="orbit" id="dock-orbit">🎥 Орбита</button>
-      <button class="dock-btn" data-cam="follow" id="dock-follow">🐟 Следить</button>
-      <button class="dock-btn" data-cam="front" id="dock-front">🔍 Фронт</button>
+      <button class="dock-btn active" data-cam="orbit" id="dock-orbit">🎥 Orbit</button>
+      <button class="dock-btn" data-cam="follow" id="dock-follow">🐟 Follow</button>
+      <button class="dock-btn" data-cam="front" id="dock-front">🔍 Front</button>
     </div>
     <div class="dock-divider"></div>
     <div class="dock-group">
-      <button class="dock-btn" id="bubbles-toggle">🫧 Пузыри: Вкл</button>
+      <button class="dock-btn" id="bubbles-toggle">🫧 Bubbles: On</button>
     </div>
   </div>
 
   <!-- Fish Info Card -->
   <div class="ui-container fish-info-card" id="fish-info-card">
     <div class="fish-info-title">
-      <span id="info-card-title">🌊 Обитатели аквариума</span>
+      <span id="info-card-title">🌊 Aquarium Inhabitants</span>
       <button class="fish-info-close" id="close-info-btn">✕</button>
     </div>
     <div class="fish-info-item">
-      <span id="label-clown">Клоун-оцеллярис:</span>
+      <span id="label-clown">Clownfish (Ocellaris):</span>
       <span id="count-clown">3</span>
     </div>
     <div class="fish-info-item">
-      <span id="label-tang">Голубой хирург (Дори):</span>
+      <span id="label-tang">Blue Tang (Dory):</span>
       <span id="count-tang">2</span>
     </div>
     <div class="fish-info-item">
-      <span id="label-discus">Дискус бирюзовый:</span>
+      <span id="label-discus">Turquoise Discus:</span>
       <span id="count-discus">2</span>
     </div>
     <div class="fish-info-item">
-      <span id="label-tetra">Неоновые тетры:</span>
+      <span id="label-tetra">Neon Tetras:</span>
       <span id="count-tetra">7</span>
     </div>
     <div class="fish-info-item" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 4px; padding-top: 4px;">
-      <span id="label-total">Всего рыбок:</span>
+      <span id="label-total">Total fish:</span>
       <span id="count-total" style="color: #38bdf8; font-weight:700;">14</span>
     </div>
   </div>
@@ -2165,20 +2288,29 @@
       }
     };
 
-    let currentLang = 'ru';
+    let currentLang = 'en';
     const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
+    const LANG_FLAGS = { en: '🇺🇸', ru: '🇷🇺', he: '🇮🇱' };
+    const LANG_CODES = { en: 'EN', ru: 'RU', he: 'HE' };
+
     function setLanguage(lang) {
-      if (!I18N[lang]) lang = 'ru';
+      if (!I18N[lang]) lang = 'en';
       currentLang = lang;
 
       const t = I18N[lang];
       document.documentElement.lang = lang;
       document.body.classList.toggle('rtl', lang === 'he');
 
-      // Update switcher active buttons
-      document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.lang === lang);
+      // Update dropdown trigger button flag & code
+      const curFlag = document.getElementById('lang-current-flag');
+      if (curFlag) curFlag.textContent = LANG_FLAGS[lang] || '🇺🇸';
+      const curCode = document.getElementById('lang-current-code');
+      if (curCode) curCode.textContent = LANG_CODES[lang] || 'EN';
+
+      // Update active option in dropdown menu
+      document.querySelectorAll('.lang-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.lang === lang);
       });
 
       // Header Brand & Actions
@@ -2242,13 +2374,42 @@
       } catch (e) {}
     }
 
-    // Language switcher buttons click handlers
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+    // Language Dropdown Menu Interactions
+    const langDropdown = document.getElementById('lang-dropdown');
+    const langDropdownBtn = document.getElementById('lang-dropdown-btn');
+
+    if (langDropdown && langDropdownBtn) {
+      langDropdownBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        setLanguage(btn.dataset.lang);
+        const isOpen = langDropdown.classList.toggle('open');
+        langDropdownBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       });
-    });
+
+      document.querySelectorAll('.lang-option').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setLanguage(opt.dataset.lang);
+          langDropdown.classList.remove('open');
+          langDropdownBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+
+      // Close dropdown on outside click
+      document.addEventListener('click', (e) => {
+        if (!langDropdown.contains(e.target)) {
+          langDropdown.classList.remove('open');
+          langDropdownBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // Close dropdown on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          langDropdown.classList.remove('open');
+          langDropdownBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
 
     const bubblesBtn = document.getElementById('bubbles-toggle');
     bubblesBtn.addEventListener('click', () => {
@@ -2295,20 +2456,15 @@
       });
     }
 
-    // Initialize Language from localStorage or Browser
-    let initialLang = 'ru';
+    // Initialize Language (Default is English)
+    let initialLang = 'en';
     try {
       const saved = localStorage.getItem('aqua_lang');
       if (saved && I18N[saved]) {
         initialLang = saved;
-      } else {
-        const navLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
-        if (navLang.startsWith('he')) initialLang = 'he';
-        else if (navLang.startsWith('en')) initialLang = 'en';
-        else initialLang = 'ru';
       }
     } catch (e) {
-      initialLang = 'ru';
+      initialLang = 'en';
     }
     setLanguage(initialLang);
 
