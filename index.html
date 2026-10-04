@@ -379,6 +379,62 @@
         font-size: 11px;
       }
     }
+
+    /* Language Selector */
+    .lang-selector {
+      display: flex;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      border-radius: 12px;
+      padding: 3px;
+      gap: 2px;
+      pointer-events: auto;
+      min-height: 38px;
+      align-items: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 5px 9px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      line-height: 1;
+    }
+    .lang-btn:hover {
+      color: #38bdf8;
+    }
+    .lang-btn.active {
+      background: rgba(56, 189, 248, 0.28);
+      color: #38bdf8;
+      font-weight: 700;
+    }
+    .lang-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* RTL Support for Hebrew */
+    body.rtl {
+      direction: rtl;
+    }
+    body.rtl .brand-text {
+      text-align: right;
+    }
+    body.rtl .fish-info-card {
+      left: calc(16px + env(safe-area-inset-left, 0px));
+      right: auto;
+      text-align: right;
+    }
+    body.rtl .fish-info-title,
+    body.rtl .fish-info-item {
+      direction: rtl;
+    }
   </style>
 
   <!-- Three.js & Controls -->
@@ -394,46 +450,53 @@
       <div class="brand-icon">🐠</div>
       <div class="brand-text">
         <h1>Aquarium 3D Ultra</h1>
-        <p>Биотоп тропического рифа • Анатомические 3D-рыбы</p>
+        <p id="brand-subtitle">Биотоп тропического рифа • Анатомические 3D-рыбы</p>
       </div>
     </div>
 
     <div class="top-actions">
+      <!-- Language Switcher -->
+      <div class="lang-selector" id="lang-selector">
+        <button class="lang-btn active" data-lang="ru">RU</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="he">עב</button>
+      </div>
+
       <button class="action-btn" id="feed-btn">
-        <span>🍤</span> <span class="btn-text">Корм</span>
+        <span>🍤</span> <span class="btn-text" id="feed-text">Корм</span>
       </button>
       <button class="action-btn" id="add-fish-btn">
-        <span>➕</span> <span class="btn-text">Рыбка</span>
+        <span>➕</span> <span class="btn-text" id="add-fish-text">Рыбка</span>
       </button>
       <button class="action-btn" id="sound-btn">
         <span id="sound-icon">🔈</span> <span class="btn-text" id="sound-text">Звук</span>
       </button>
       <button class="action-btn" id="info-toggle-btn">
-        <span>📊</span> <span class="btn-text">Инфо</span>
+        <span>📊</span> <span class="btn-text" id="info-text">Инфо</span>
       </button>
       <button class="action-btn" id="download-btn" style="background: rgba(14, 165, 233, 0.35); border-color: #38bdf8;">
-        <span>💾</span> <span class="btn-text">Скачать</span>
+        <span>💾</span> <span class="btn-text" id="download-text">Скачать</span>
       </button>
     </div>
   </div>
 
   <!-- Hint -->
-  <div class="interaction-hint">
+  <div class="interaction-hint" id="interaction-hint">
     ✨ Нажмите в любом месте для кормления • Зажмите ЛКМ для вращения камеры
   </div>
 
   <!-- Bottom Control Dock -->
   <div class="ui-container bottom-dock">
     <div class="dock-group">
-      <button class="dock-btn active" data-light="day">☀️ День</button>
-      <button class="dock-btn" data-light="sunset">🌅 Закат</button>
-      <button class="dock-btn" data-light="night">🌙 Неон</button>
+      <button class="dock-btn active" data-light="day" id="dock-day">☀️ День</button>
+      <button class="dock-btn" data-light="sunset" id="dock-sunset">🌅 Закат</button>
+      <button class="dock-btn" data-light="night" id="dock-night">🌙 Неон</button>
     </div>
     <div class="dock-divider"></div>
     <div class="dock-group">
-      <button class="dock-btn active" data-cam="orbit">🎥 Орбита</button>
-      <button class="dock-btn" data-cam="follow">🐟 Следить</button>
-      <button class="dock-btn" data-cam="front">🔍 Фронт</button>
+      <button class="dock-btn active" data-cam="orbit" id="dock-orbit">🎥 Орбита</button>
+      <button class="dock-btn" data-cam="follow" id="dock-follow">🐟 Следить</button>
+      <button class="dock-btn" data-cam="front" id="dock-front">🔍 Фронт</button>
     </div>
     <div class="dock-divider"></div>
     <div class="dock-group">
@@ -444,27 +507,27 @@
   <!-- Fish Info Card -->
   <div class="ui-container fish-info-card" id="fish-info-card">
     <div class="fish-info-title">
-      <span>🌊 Обитатели аквариума</span>
+      <span id="info-card-title">🌊 Обитатели аквариума</span>
       <button class="fish-info-close" id="close-info-btn">✕</button>
     </div>
     <div class="fish-info-item">
-      <span>Клоун-оцеллярис:</span>
+      <span id="label-clown">Клоун-оцеллярис:</span>
       <span id="count-clown">3</span>
     </div>
     <div class="fish-info-item">
-      <span>Голубой хирург (Дори):</span>
+      <span id="label-tang">Голубой хирург (Дори):</span>
       <span id="count-tang">2</span>
     </div>
     <div class="fish-info-item">
-      <span>Дискус бирюзовый:</span>
+      <span id="label-discus">Дискус бирюзовый:</span>
       <span id="count-discus">2</span>
     </div>
     <div class="fish-info-item">
-      <span>Неоновые тетры:</span>
+      <span id="label-tetra">Неоновые тетры:</span>
       <span id="count-tetra">7</span>
     </div>
     <div class="fish-info-item" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 4px; padding-top: 4px;">
-      <span>Всего рыбок:</span>
+      <span id="label-total">Всего рыбок:</span>
       <span id="count-total" style="color: #38bdf8; font-weight:700;">14</span>
     </div>
   </div>
@@ -2015,10 +2078,182 @@
       document.getElementById('count-total').innerText = fishes.length;
     }
 
+    // =========================================================================
+    // MULTILINGUAL (I18N) ENGINE - RU / EN / HE
+    // =========================================================================
+    const I18N = {
+      ru: {
+        title: 'Aquarium 3D Ultra',
+        brandSubtitle: 'Биотоп тропического рифа • Анатомические 3D-рыбы',
+        feed: 'Корм',
+        addFish: 'Рыбка',
+        soundOn: 'Звук: Вкл',
+        soundOff: 'Звук: Выкл',
+        soundDefault: 'Звук',
+        info: 'Инфо',
+        download: 'Скачать',
+        hintDesktop: '✨ Нажмите в любом месте для кормления • Зажмите ЛКМ для вращения камеры',
+        hintTouch: '✨ Нажмите на экран для кормления • Проведите пальцем для обзора',
+        dockDay: '☀️ День',
+        dockSunset: '🌅 Закат',
+        dockNight: '🌙 Неон',
+        dockOrbit: '🎥 Орбита',
+        dockFollow: '🐟 Следить',
+        dockFront: '🔍 Фронт',
+        bubblesOn: '🫧 Пузыри: Вкл',
+        bubblesOff: '🫧 Пузыри: Выкл',
+        infoCardTitle: '🌊 Обитатели аквариума',
+        labelClown: 'Клоун-оцеллярис:',
+        labelTang: 'Голубой хирург (Дори):',
+        labelDiscus: 'Дискус бирюзовый:',
+        labelTetra: 'Неоновые тетры:',
+        labelTotal: 'Всего рыбок:'
+      },
+      en: {
+        title: 'Aquarium 3D Ultra',
+        brandSubtitle: 'Tropical Reef Biotope • Anatomical 3D Fish',
+        feed: 'Feed',
+        addFish: 'Add Fish',
+        soundOn: 'Sound: On',
+        soundOff: 'Sound: Off',
+        soundDefault: 'Sound',
+        info: 'Stats',
+        download: 'Download',
+        hintDesktop: '✨ Click anywhere to feed • Hold Left Click to rotate camera',
+        hintTouch: '✨ Tap anywhere to feed • Drag finger to rotate camera',
+        dockDay: '☀️ Day',
+        dockSunset: '🌅 Sunset',
+        dockNight: '🌙 Neon',
+        dockOrbit: '🎥 Orbit',
+        dockFollow: '🐟 Follow',
+        dockFront: '🔍 Front',
+        bubblesOn: '🫧 Bubbles: On',
+        bubblesOff: '🫧 Bubbles: Off',
+        infoCardTitle: '🌊 Aquarium Inhabitants',
+        labelClown: 'Clownfish (Ocellaris):',
+        labelTang: 'Blue Tang (Dory):',
+        labelDiscus: 'Turquoise Discus:',
+        labelTetra: 'Neon Tetras:',
+        labelTotal: 'Total fish:'
+      },
+      he: {
+        title: 'Aquarium 3D Ultra',
+        brandSubtitle: 'ביוטופ שונית טרופית • דגי תלת-ממד אנטומיים',
+        feed: 'האכלה',
+        addFish: 'הוסף דג',
+        soundOn: 'קול: פועל',
+        soundOff: 'קול: כבוי',
+        soundDefault: 'קול',
+        info: 'מידע',
+        download: 'הורדה',
+        hintDesktop: '✨ לחץ בכל מקום להאכלה • החזק לחצן שמאלי לסיבוב המצלמה',
+        hintTouch: '✨ הקש על המסך להאכלה • החלק אצבע לסיבוב המצלמה',
+        dockDay: '☀️ יום',
+        dockSunset: '🌅 שקיעה',
+        dockNight: '🌙 ניאון',
+        dockOrbit: '🎥 מסלול',
+        dockFollow: '🐟 מעקב',
+        dockFront: '🔍 חזית',
+        bubblesOn: '🫧 בועות: פועל',
+        bubblesOff: '🫧 בועות: כבוי',
+        infoCardTitle: '🌊 שוכני האקווריום',
+        labelClown: 'שושנון (דג ליצן):',
+        labelTang: 'נתחן כחול (דורי):',
+        labelDiscus: 'דיסקוס טורקיז:',
+        labelTetra: 'נאון טטרה:',
+        labelTotal: 'סה"כ דגים:'
+      }
+    };
+
+    let currentLang = 'ru';
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+    function setLanguage(lang) {
+      if (!I18N[lang]) lang = 'ru';
+      currentLang = lang;
+
+      const t = I18N[lang];
+      document.documentElement.lang = lang;
+      document.body.classList.toggle('rtl', lang === 'he');
+
+      // Update switcher active buttons
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+
+      // Header Brand & Actions
+      const sub = document.getElementById('brand-subtitle');
+      if (sub) sub.textContent = t.brandSubtitle;
+      const feedTxt = document.getElementById('feed-text');
+      if (feedTxt) feedTxt.textContent = t.feed;
+      const addTxt = document.getElementById('add-fish-text');
+      if (addTxt) addTxt.textContent = t.addFish;
+      const soundTxt = document.getElementById('sound-text');
+      if (soundTxt) {
+        soundTxt.textContent = isSoundPlaying ? t.soundOn : t.soundDefault;
+      }
+      const infoTxt = document.getElementById('info-text');
+      if (infoTxt) infoTxt.textContent = t.info;
+      const dlTxt = document.getElementById('download-text');
+      if (dlTxt) dlTxt.textContent = t.download;
+
+      // Hint
+      const hint = document.getElementById('interaction-hint');
+      if (hint) {
+        hint.textContent = isTouchDevice ? t.hintTouch : t.hintDesktop;
+      }
+
+      // Bottom Dock Buttons
+      const dDay = document.getElementById('dock-day');
+      if (dDay) dDay.textContent = t.dockDay;
+      const dSunset = document.getElementById('dock-sunset');
+      if (dSunset) dSunset.textContent = t.dockSunset;
+      const dNight = document.getElementById('dock-night');
+      if (dNight) dNight.textContent = t.dockNight;
+
+      const dOrbit = document.getElementById('dock-orbit');
+      if (dOrbit) dOrbit.textContent = t.dockOrbit;
+      const dFollow = document.getElementById('dock-follow');
+      if (dFollow) dFollow.textContent = t.dockFollow;
+      const dFront = document.getElementById('dock-front');
+      if (dFront) dFront.textContent = t.dockFront;
+
+      const bToggle = document.getElementById('bubbles-toggle');
+      if (bToggle) {
+        bToggle.textContent = bubblesEnabled ? t.bubblesOn : t.bubblesOff;
+      }
+
+      // Fish Info Card
+      const cTitle = document.getElementById('info-card-title');
+      if (cTitle) cTitle.textContent = t.infoCardTitle;
+      const lClown = document.getElementById('label-clown');
+      if (lClown) lClown.textContent = t.labelClown;
+      const lTang = document.getElementById('label-tang');
+      if (lTang) lTang.textContent = t.labelTang;
+      const lDiscus = document.getElementById('label-discus');
+      if (lDiscus) lDiscus.textContent = t.labelDiscus;
+      const lTetra = document.getElementById('label-tetra');
+      if (lTetra) lTetra.textContent = t.labelTetra;
+      const lTotal = document.getElementById('label-total');
+      if (lTotal) lTotal.textContent = t.labelTotal;
+
+      try {
+        localStorage.setItem('aqua_lang', lang);
+      } catch (e) {}
+    }
+
+    // Language switcher buttons click handlers
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setLanguage(btn.dataset.lang);
+      });
+    });
+
     const bubblesBtn = document.getElementById('bubbles-toggle');
     bubblesBtn.addEventListener('click', () => {
       bubblesEnabled = !bubblesEnabled;
-      bubblesBtn.innerText = bubblesEnabled ? '🫧 Пузыри: Вкл' : '🫧 Пузыри: Выкл';
+      bubblesBtn.innerText = bubblesEnabled ? I18N[currentLang].bubblesOn : I18N[currentLang].bubblesOff;
       bubblesBtn.classList.toggle('active', !bubblesEnabled);
     });
 
@@ -2031,13 +2266,13 @@
         waterSoundGain.gain.exponentialRampToValueAtTime(0.06, audioCtx.currentTime + 1.5);
         isSoundPlaying = true;
         document.getElementById('sound-icon').innerText = '🔊';
-        document.getElementById('sound-text').innerText = 'Звук: Вкл';
+        document.getElementById('sound-text').innerText = I18N[currentLang].soundOn;
         soundBtn.classList.add('active');
       } else {
         waterSoundGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.6);
         isSoundPlaying = false;
         document.getElementById('sound-icon').innerText = '🔈';
-        document.getElementById('sound-text').innerText = 'Звук: Выкл';
+        document.getElementById('sound-text').innerText = I18N[currentLang].soundOff;
         soundBtn.classList.remove('active');
       }
     });
@@ -2060,12 +2295,22 @@
       });
     }
 
-    // Touch device detection & hint update
-    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-    const hintEl = document.querySelector('.interaction-hint');
-    if (hintEl && isTouchDevice) {
-      hintEl.innerText = '✨ Нажмите на экран для кормления • Проведите пальцем для обзора';
+    // Initialize Language from localStorage or Browser
+    let initialLang = 'ru';
+    try {
+      const saved = localStorage.getItem('aqua_lang');
+      if (saved && I18N[saved]) {
+        initialLang = saved;
+      } else {
+        const navLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+        if (navLang.startsWith('he')) initialLang = 'he';
+        else if (navLang.startsWith('en')) initialLang = 'en';
+        else initialLang = 'ru';
+      }
+    } catch (e) {
+      initialLang = 'ru';
     }
+    setLanguage(initialLang);
 
     document.getElementById('download-btn').addEventListener('click', () => {
       const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
