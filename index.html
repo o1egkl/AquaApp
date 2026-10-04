@@ -81,6 +81,7 @@
       letter-spacing: 0.5px;
       background: linear-gradient(135deg, #38bdf8, #818cf8, #34d399);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       white-space: nowrap;
     }
@@ -294,6 +295,23 @@
       }
     }
 
+    /* Tablet & Medium Screens: streamlined single-row dock */
+    @media (max-width: 768px) and (min-width: 641px) {
+      .bottom-dock {
+        padding: 6px 12px;
+        gap: 8px;
+      }
+      .dock-btn {
+        padding: 7px 8px;
+        font-size: 11.5px;
+      }
+      .action-btn {
+        padding: 7px 10px;
+        font-size: 11.5px;
+      }
+    }
+
+    /* Mobile Screens */
     @media (max-width: 640px) {
       .header-bar {
         top: calc(8px + env(safe-area-inset-top, 0px));
@@ -326,7 +344,7 @@
       .lang-dropdown-btn {
         padding: 6px 9px;
         font-size: 11px;
-        min-height: 32px;
+        min-height: 34px;
         border-radius: 10px;
       }
       .lang-dropdown-menu {
@@ -334,34 +352,34 @@
         left: auto;
         max-width: calc(100vw - 16px);
       }
+      body.rtl .lang-dropdown-menu {
+        right: auto;
+        left: 0;
+      }
       .top-actions {
         width: 100%;
         order: 3;
-        display: flex;
-        justify-content: space-between;
-        gap: 5px;
-        overflow-x: auto;
-        scrollbar-width: none;
-        -webkit-overflow-scrolling: touch;
-      }
-      .top-actions::-webkit-scrollbar {
-        display: none;
-      }
-      .action-btn {
-        padding: 6px 8px;
-        font-size: 11px;
-        min-height: 32px;
-        border-radius: 10px;
-        flex: 1 1 auto;
-        justify-content: center;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
         gap: 4px;
       }
-      .btn-label {
-        display: inline;
+      .action-btn {
+        padding: 6px 2px;
+        font-size: 11px;
+        min-height: 36px;
+        border-radius: 10px;
+        width: 100%;
+        justify-content: center;
+        gap: 3px;
+      }
+      .action-btn .btn-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .interaction-hint {
         position: fixed;
-        bottom: calc(96px + env(safe-area-inset-bottom, 10px));
+        bottom: calc(102px + env(safe-area-inset-bottom, 10px));
         font-size: 10px;
         padding: 5px 12px;
         max-width: 90vw;
@@ -373,8 +391,8 @@
         left: 50%;
         transform: translateX(-50%);
         width: calc(100% - 16px);
-        max-width: 440px;
-        padding: 6px 8px;
+        max-width: 420px;
+        padding: 7px 8px;
         display: flex;
         flex-direction: column;
         gap: 5px;
@@ -386,18 +404,27 @@
       }
       .dock-group {
         width: 100%;
-        display: flex;
+      }
+      .dock-group-light {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
         gap: 4px;
-        justify-content: space-between;
+      }
+      .dock-group-cam {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 250px;
+        margin: 0 auto;
+        gap: 6px;
       }
       .dock-btn {
-        flex: 1 1 0;
+        width: 100%;
         min-width: 0;
         justify-content: center;
-        padding: 7px 4px;
+        padding: 7px 2px;
         font-size: 11px;
-        min-height: 33px;
-        gap: 4px;
+        min-height: 35px;
+        gap: 3px;
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
@@ -408,7 +435,7 @@
         position: fixed;
         right: 10px;
         left: 10px;
-        bottom: calc(96px + env(safe-area-inset-bottom, 10px));
+        bottom: calc(106px + env(safe-area-inset-bottom, 10px));
         min-width: unset;
         display: none;
         z-index: 20;
@@ -426,35 +453,92 @@
       }
     }
 
-    @media (max-width: 440px) {
-      .action-btn .btn-text {
-        font-size: 10px;
+    @media (max-width: 380px) {
+      .brand-text h1 {
+        font-size: 11.5px;
+      }
+      .action-btn {
+        font-size: 9.5px;
+        padding: 5px 1px;
+      }
+      .dock-btn {
+        font-size: 9.5px;
+        padding: 6px 1px;
+      }
+      .dock-group-cam {
+        max-width: 220px;
+      }
+    }
+
+    /* Mobile Landscape Optimization */
+    @media (max-height: 520px) {
+      .header-bar {
+        top: calc(4px + env(safe-area-inset-top, 0px));
+        left: calc(6px + env(safe-area-inset-left, 0px));
+        right: calc(6px + env(safe-area-inset-right, 0px));
+        flex-wrap: nowrap;
+        gap: 6px;
+      }
+      .brand {
+        padding: 4px 8px;
+        border-radius: 10px;
+      }
+      .brand-text p {
+        display: none;
       }
       .brand-text h1 {
         font-size: 12px;
       }
-      .dock-btn {
-        font-size: 10.5px;
-        padding: 6px 2px;
-        gap: 3px;
-      }
-    }
-
-    @media (max-width: 380px) {
-      .action-btn .btn-text {
-        display: none;
+      .top-actions {
+        order: 2;
+        width: auto;
+        display: flex;
+        gap: 4px;
       }
       .action-btn {
-        padding: 6px 10px;
-        flex: 0 1 auto;
+        padding: 4px 8px;
+        min-height: 28px;
+        font-size: 10px;
+        border-radius: 8px;
       }
-      .top-actions {
-        justify-content: center;
+      .bottom-dock {
+        bottom: max(6px, env(safe-area-inset-bottom, 6px));
+        flex-direction: row;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 14px;
+        max-width: 95vw;
+      }
+      .dock-divider {
+        display: block;
+        height: 18px;
+      }
+      .dock-group-light {
+        display: flex;
+        gap: 3px;
+      }
+      .dock-group-cam {
+        display: flex;
+        gap: 3px;
+        max-width: none;
+        margin: 0;
       }
       .dock-btn {
-        padding: 6px 2px;
-        font-size: 9.5px;
-        gap: 2px;
+        padding: 4px 8px;
+        font-size: 10.5px;
+        min-height: 28px;
+        border-radius: 8px;
+      }
+      .interaction-hint {
+        display: none;
+      }
+      .fish-info-card {
+        right: 8px;
+        left: auto;
+        bottom: calc(48px + env(safe-area-inset-bottom, 6px));
+        max-width: 240px;
+        padding: 8px 12px;
+        font-size: 11px;
       }
     }
 
@@ -695,9 +779,8 @@
     </div>
     <div class="dock-divider"></div>
     <div class="dock-group dock-group-cam">
-      <button class="dock-btn active" data-cam="orbit" id="dock-orbit">🎥 Orbit</button>
       <button class="dock-btn" data-cam="follow" id="dock-follow">🐟 Follow</button>
-      <button class="dock-btn" data-cam="front" id="dock-front">🔍 Front</button>
+      <button class="dock-btn active" data-cam="front" id="dock-front">🔍 Front</button>
     </div>
   </div>
 
@@ -2221,34 +2304,54 @@
     // =========================================================================
     // CAMERA MODES & UI HANDLERS
     // =========================================================================
-    let currentCameraMode = 'orbit';
+    let currentCameraMode = 'front';
     let followedFish = null;
 
     document.querySelectorAll('[data-light]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('[data-light]').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        applyLightingMode(e.target.dataset.light);
+        e.currentTarget.classList.add('active');
+        applyLightingMode(e.currentTarget.dataset.light);
       });
     });
 
     document.querySelectorAll('[data-cam]').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        document.querySelectorAll('[data-cam]').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        currentCameraMode = e.target.dataset.cam;
+        const targetBtn = e.currentTarget;
+        const mode = targetBtn.dataset.cam;
 
-        if (currentCameraMode === 'orbit') {
-          controls.enabled = true;
-        } else if (currentCameraMode === 'front') {
+        if (mode === 'follow') {
+          if (currentCameraMode === 'follow') {
+            const otherFishes = fishes.filter(f => f !== followedFish);
+            followedFish = otherFishes.length > 0
+              ? otherFishes[Math.floor(Math.random() * otherFishes.length)]
+              : fishes[0];
+          } else {
+            currentCameraMode = 'follow';
+            followedFish = fishes[Math.floor(Math.random() * fishes.length)];
+            controls.enabled = false;
+            document.querySelectorAll('[data-cam]').forEach(b => b.classList.remove('active'));
+            targetBtn.classList.add('active');
+          }
+        } else if (mode === 'front') {
+          currentCameraMode = 'front';
+          followedFish = null;
           controls.enabled = true;
           controls.target.set(0, 0, 0);
           camera.position.set(0, 0, 26);
-        } else if (currentCameraMode === 'follow') {
-          followedFish = fishes[Math.floor(Math.random() * fishes.length)];
-          controls.enabled = false;
+          document.querySelectorAll('[data-cam]').forEach(b => b.classList.remove('active'));
+          targetBtn.classList.add('active');
         }
       });
+    });
+
+    // Un-highlight Front when user manually rotates or pans the camera away from front view
+    controls.addEventListener('start', () => {
+      if (currentCameraMode === 'front') {
+        const dFront = document.getElementById('dock-front');
+        if (dFront) dFront.classList.remove('active');
+        currentCameraMode = 'free';
+      }
     });
 
     document.getElementById('feed-btn').addEventListener('click', () => dropFood());
@@ -2294,7 +2397,6 @@
         dockDay: '☀️ День',
         dockSunset: '🌅 Закат',
         dockNight: '🌙 Неон',
-        dockOrbit: '🎥 Орбита',
         dockFollow: '🐟 Следить',
         dockFront: '🔍 Фронт',
         bubblesOn: '🫧 Пузыри: Вкл',
@@ -2321,7 +2423,6 @@
         dockDay: '☀️ Day',
         dockSunset: '🌅 Sunset',
         dockNight: '🌙 Neon',
-        dockOrbit: '🎥 Orbit',
         dockFollow: '🐟 Follow',
         dockFront: '🔍 Front',
         bubblesOn: '🫧 Bubbles: On',
@@ -2348,7 +2449,6 @@
         dockDay: '☀️ יום',
         dockSunset: '🌅 שקיעה',
         dockNight: '🌙 ניאון',
-        dockOrbit: '🎥 מסלול',
         dockFollow: '🐟 מעקב',
         dockFront: '🔍 חזית',
         bubblesOn: '🫧 בועות: פועל',
@@ -2417,8 +2517,6 @@
       const dNight = document.getElementById('dock-night');
       if (dNight) dNight.textContent = t.dockNight;
 
-      const dOrbit = document.getElementById('dock-orbit');
-      if (dOrbit) dOrbit.textContent = t.dockOrbit;
       const dFollow = document.getElementById('dock-follow');
       if (dFollow) dFollow.textContent = t.dockFollow;
       const dFront = document.getElementById('dock-front');

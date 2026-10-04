@@ -25,7 +25,7 @@ An interactive, photorealistic 3D aquarium simulation built with Three.js and We
 - **Interactivity**:
   - **Feeding**: Click anywhere in the tank or tap "Покормить рыбок" to drop food flakes; fish actively detect and swim to eat the flakes.
   - **3 Lighting Modes**: ☀️ Day, 🌅 Sunset, and 🌙 Neon Night.
-  - **Camera Modes**: Orbit inspection, cinematic fish tracking (Follow camera), and front perspective.
+  - **Camera Modes**: Front perspective with 3D free inspection, and cinematic fish tracking (Follow camera).
   - **Synthesized Ambient Audio**: Relaxing procedural underwater bubbling and drone sound effects powered by Web Audio API.
 
 ## 🚀 Getting Started
