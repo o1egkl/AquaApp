@@ -449,23 +449,23 @@
     </div>
     <div class="fish-info-item">
       <span>Клоун-оцеллярис:</span>
-      <span id="count-clown">4</span>
+      <span id="count-clown">3</span>
     </div>
     <div class="fish-info-item">
       <span>Голубой хирург (Дори):</span>
-      <span id="count-tang">3</span>
+      <span id="count-tang">2</span>
     </div>
     <div class="fish-info-item">
       <span>Дискус бирюзовый:</span>
-      <span id="count-discus">3</span>
+      <span id="count-discus">2</span>
     </div>
     <div class="fish-info-item">
       <span>Неоновые тетры:</span>
-      <span id="count-tetra">10</span>
+      <span id="count-tetra">7</span>
     </div>
     <div class="fish-info-item" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 4px; padding-top: 4px;">
       <span>Всего рыбок:</span>
-      <span id="count-total" style="color: #38bdf8; font-weight:700;">20</span>
+      <span id="count-total" style="color: #38bdf8; font-weight:700;">14</span>
     </div>
   </div>
 
@@ -740,192 +740,201 @@
       ctx.restore();
     }
 
-    // 1. Photorealistic Clownfish Skin (Amphiprion ocellaris)
+    // 1. Ultra-Vibrant Clownfish Skin (Amphiprion ocellaris)
     function createClownfishTexture() {
       const c = document.createElement('canvas');
       c.width = 1024;
       c.height = 512;
       const ctx = c.getContext('2d');
 
-      // Vivid natural orange gradient (darker dorsal, warm peach belly)
+      // Intense fiery mandarin & orange gradient
       const grad = ctx.createLinearGradient(0, 0, 0, 512);
-      grad.addColorStop(0, '#c2410c');   // Darker amber spine
-      grad.addColorStop(0.35, '#ea580c'); // Vivid orange flank
-      grad.addColorStop(0.85, '#f97316'); // Bright belly
-      grad.addColorStop(1, '#fed7aa');    // Soft peach ventral edge
+      grad.addColorStop(0, '#c2410c');    // Rich crimson-amber spine
+      grad.addColorStop(0.2, '#ea580c');  // Fiery saturated orange
+      grad.addColorStop(0.55, '#f97316'); // Luminous coral tangerine
+      grad.addColorStop(0.85, '#fb923c'); // Warm sunny orange
+      grad.addColorStop(1, '#ffedd5');    // Delicate peach ventral edge
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 1024, 512);
 
-      // Micro scales
-      drawMicroScales(ctx, 1024, 512, 0.14);
+      // Micro pearlescent scales
+      drawMicroScales(ctx, 1024, 512, 0.22);
 
-      // 3 Iconic White Bars with delicate organic contours & dark shadow borders
+      // 3 Iconic White Bars with crisp obsidian borders & golden rims
       const bands = [
-        { cx: 300, w: 90, curve: 35 },  // Head band
-        { cx: 560, w: 105, curve: 45 }, // Middle band (with characteristic forward triangle peak)
-        { cx: 840, w: 75, curve: 20 }   // Tail peduncle band
+        { cx: 300, w: 92, curve: 35 },
+        { cx: 560, w: 108, curve: 45 },
+        { cx: 840, w: 78, curve: 20 }
       ];
 
       bands.forEach(b => {
-        // Deep charcoal/black outer rim
-        ctx.fillStyle = '#0a0a0c';
+        // Deep obsidian black border
+        ctx.fillStyle = '#050507';
         ctx.beginPath();
-        ctx.ellipse(b.cx, 256, (b.w / 2) + 12, 230, 0, 0, Math.PI * 2);
+        ctx.ellipse(b.cx, 256, (b.w / 2) + 14, 235, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Creamy pure white core with gradient
+        // Brilliant pure porcelain white core
         const wGrad = ctx.createLinearGradient(b.cx - b.w, 0, b.cx + b.w, 0);
-        wGrad.addColorStop(0, '#e2e8f0');
+        wGrad.addColorStop(0, '#f1f5f9');
         wGrad.addColorStop(0.5, '#ffffff');
-        wGrad.addColorStop(1, '#e2e8f0');
+        wGrad.addColorStop(1, '#f1f5f9');
         ctx.fillStyle = wGrad;
         ctx.beginPath();
-        ctx.ellipse(b.cx, 256, b.w / 2, 220, 0, 0, Math.PI * 2);
+        ctx.ellipse(b.cx, 256, b.w / 2, 224, 0, 0, Math.PI * 2);
         ctx.fill();
       });
 
-      // Operculum (gill cover) crease shadow
-      ctx.strokeStyle = 'rgba(67, 20, 7, 0.45)';
-      ctx.lineWidth = 5;
+      // Operculum (gill cover) crease
+      ctx.strokeStyle = 'rgba(120, 25, 0, 0.55)';
+      ctx.lineWidth = 6;
       ctx.beginPath();
       ctx.arc(380, 260, 110, -0.6, 0.6);
       ctx.stroke();
 
-      // Fin margins (black tip border)
+      // Radiant fin tip edging
       ctx.fillStyle = '#09090b';
-      ctx.fillRect(990, 0, 34, 512);
+      ctx.fillRect(988, 0, 36, 512);
 
-      const tex = new THREE.CanvasTexture(c);
-      return tex;
+      return new THREE.CanvasTexture(c);
     }
 
-    // 2. Photorealistic Blue Tang Skin (Paracanthurus hepatus / Dory)
+    // 2. High-Saturation Royal Sapphire Blue Tang (Paracanthurus hepatus)
     function createTangTexture() {
       const c = document.createElement('canvas');
       c.width = 1024;
       c.height = 512;
       const ctx = c.getContext('2d');
 
-      // Royal velvety sapphire blue
+      // Electric royal sapphire blue gradient
       const grad = ctx.createLinearGradient(0, 0, 0, 512);
-      grad.addColorStop(0, '#0f2b74');
-      grad.addColorStop(0.4, '#1d4ed8');
-      grad.addColorStop(0.7, '#2563eb');
+      grad.addColorStop(0, '#0a239c');
+      grad.addColorStop(0.3, '#1d4ed8');
+      grad.addColorStop(0.65, '#2563eb');
+      grad.addColorStop(0.85, '#3b82f6');
       grad.addColorStop(1, '#1e3a8a');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 1024, 512);
 
-      drawMicroScales(ctx, 1024, 512, 0.1);
+      drawMicroScales(ctx, 1024, 512, 0.16);
 
-      // Iconic Black Palette Swirl pattern
-      ctx.fillStyle = '#090d16';
+      // Velvet pitch-black palette swirl pattern for punchy contrast
+      ctx.fillStyle = '#05070d';
       ctx.beginPath();
-      ctx.moveTo(240, 120);
-      ctx.bezierCurveTo(450, 60, 720, 80, 820, 200);
-      ctx.bezierCurveTo(860, 260, 810, 350, 680, 340);
-      ctx.bezierCurveTo(520, 330, 480, 190, 320, 200);
-      ctx.bezierCurveTo(240, 210, 220, 140, 240, 120);
+      ctx.moveTo(240, 115);
+      ctx.bezierCurveTo(450, 50, 720, 70, 820, 195);
+      ctx.bezierCurveTo(865, 255, 815, 355, 680, 345);
+      ctx.bezierCurveTo(520, 335, 480, 185, 320, 195);
+      ctx.bezierCurveTo(240, 205, 220, 135, 240, 115);
       ctx.closePath();
       ctx.fill();
 
-      // Yellow Tail Fin Wedge
-      ctx.fillStyle = '#facc15';
+      // Vivid Fluorescent Canary Yellow Tail Fin Wedge
+      ctx.fillStyle = '#fde047';
       ctx.beginPath();
-      ctx.moveTo(760, 140);
-      ctx.lineTo(1024, 40);
-      ctx.lineTo(1024, 472);
-      ctx.lineTo(760, 372);
+      ctx.moveTo(760, 135);
+      ctx.lineTo(1024, 35);
+      ctx.lineTo(1024, 477);
+      ctx.lineTo(760, 377);
       ctx.closePath();
       ctx.fill();
 
-      // Blue outer fin edging on tail
+      // Electric blue outline along the yellow tail
       ctx.strokeStyle = '#1d4ed8';
-      ctx.lineWidth = 14;
+      ctx.lineWidth = 16;
       ctx.stroke();
 
-      // Scalpel spine yellow highlight on caudal peduncle
-      ctx.fillStyle = '#fef08a';
+      // Luminous yellow scalpel spine mark
+      ctx.fillStyle = '#facc15';
       ctx.beginPath();
-      ctx.ellipse(820, 256, 26, 8, 0, 0, Math.PI * 2);
+      ctx.ellipse(820, 256, 30, 10, 0, 0, Math.PI * 2);
       ctx.fill();
 
       return new THREE.CanvasTexture(c);
     }
 
-    // 3. Photorealistic Turquoise Discus Skin (Symphysodon)
+    // 3. Radiant Tropical Rainbow Discus (Symphysodon)
     function createDiscusTexture() {
       const c = document.createElement('canvas');
       c.width = 1024;
       c.height = 1024;
       const ctx = c.getContext('2d');
 
-      // Rose-terracotta to turquoise disc gradient
-      const grad = ctx.createRadialGradient(512, 512, 80, 512, 512, 512);
-      grad.addColorStop(0, '#06b6d4');
-      grad.addColorStop(0.5, '#0284c7');
-      grad.addColorStop(0.85, '#991b1b');
+      // Radiant Sunset & Turquoise radial gradient
+      const grad = ctx.createRadialGradient(512, 512, 60, 512, 512, 512);
+      grad.addColorStop(0, '#00ffff');    // Electric cyan center
+      grad.addColorStop(0.3, '#0284c7');  // Deep turquoise
+      grad.addColorStop(0.65, '#e11d48'); // Fiery tropical rose-red
+      grad.addColorStop(0.85, '#9333ea'); // Velvet royal violet
       grad.addColorStop(1, '#0f172a');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 1024, 1024);
 
-      drawMicroScales(ctx, 1024, 1024, 0.12);
+      drawMicroScales(ctx, 1024, 1024, 0.16);
 
-      // Intricate turquoise undulating labyrinth stripes
-      ctx.strokeStyle = '#67e8f9';
-      ctx.lineWidth = 14;
+      // Glowing Neon Turquoise Labyrinth Stripes
+      ctx.strokeStyle = '#22d3ee';
+      ctx.lineWidth = 16;
       ctx.lineCap = 'round';
-      ctx.shadowColor = '#0891b2';
-      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#00f7ff';
+      ctx.shadowBlur = 12;
 
-      for (let i = 180; i < 920; i += 68) {
+      for (let i = 180; i < 920; i += 64) {
         ctx.beginPath();
-        ctx.moveTo(i, 80);
-        for (let y = 80; y < 940; y += 50) {
-          ctx.lineTo(i + Math.sin(y * 0.035 + i) * 32, y);
+        ctx.moveTo(i, 70);
+        for (let y = 70; y < 950; y += 45) {
+          ctx.lineTo(i + Math.sin(y * 0.038 + i) * 36, y);
         }
         ctx.stroke();
       }
       ctx.shadowBlur = 0;
 
-      // Vertical subtle dark stress bars
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.25)';
-      for (let i = 280; i < 880; i += 90) {
-        ctx.fillRect(i, 60, 36, 904);
+      // Soft ambient iridescent gold flecks between stripes
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.35)';
+      for (let i = 220; i < 880; i += 80) {
+        for (let y = 140; y < 880; y += 90) {
+          ctx.beginPath();
+          ctx.arc(i + Math.sin(y) * 15, y, 7, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       return new THREE.CanvasTexture(c);
     }
 
-    // 4. Photorealistic Neon Tetra Skin (Paracheirodon innesi)
+    // 4. Glowing Fluorescent Neon Tetra (Paracheirodon innesi)
     function createTetraTexture() {
       const c = document.createElement('canvas');
       c.width = 512;
       c.height = 256;
       const ctx = c.getContext('2d');
 
-      // Translucent silvery olive dorsal
-      ctx.fillStyle = '#334155';
+      // Shimmering iridescent silver-slate dorsal
+      ctx.fillStyle = '#1e293b';
       ctx.fillRect(0, 0, 512, 256);
 
-      // Vivid metallic electric cyan stripe (with glowing gradient)
-      const blueGrad = ctx.createLinearGradient(0, 60, 0, 120);
+      // Laser Electric Neon Cyan Stripe with glowing gradient
+      ctx.shadowColor = '#00ffff';
+      ctx.shadowBlur = 14;
+      const blueGrad = ctx.createLinearGradient(0, 55, 0, 125);
       blueGrad.addColorStop(0, '#38bdf8');
-      blueGrad.addColorStop(0.5, '#00f7ff');
-      blueGrad.addColorStop(1, '#0284c7');
+      blueGrad.addColorStop(0.45, '#00ffff');
+      blueGrad.addColorStop(0.85, '#0284c7');
       ctx.fillStyle = blueGrad;
-      ctx.fillRect(0, 65, 420, 48);
+      ctx.fillRect(0, 60, 440, 54);
+      ctx.shadowBlur = 0;
 
-      // Fiery fluorescent carmine red belly (posterior half)
-      const redGrad = ctx.createLinearGradient(0, 125, 0, 220);
-      redGrad.addColorStop(0, '#ef4444');
-      redGrad.addColorStop(0.6, '#dc2626');
-      redGrad.addColorStop(1, '#991b1b');
+      // Saturated glowing carmine ruby-red belly
+      const redGrad = ctx.createLinearGradient(0, 120, 0, 225);
+      redGrad.addColorStop(0, '#f43f5e');
+      redGrad.addColorStop(0.5, '#ef4444');
+      redGrad.addColorStop(1, '#b91c1c');
       ctx.fillStyle = redGrad;
-      ctx.fillRect(190, 125, 322, 95);
+      ctx.fillRect(175, 120, 337, 105);
 
-      // Silver reflective ventral belly front
-      ctx.fillStyle = '#cbd5e1';
-      ctx.fillRect(40, 130, 150, 75);
+      // Metallic silver pearlescent belly
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(30, 125, 145, 80);
 
       return new THREE.CanvasTexture(c);
     }
@@ -1527,10 +1536,20 @@
       const bodyGeom = createSculptedFishBody(speciesType);
       const bodyMat = new THREE.MeshStandardMaterial({
         map: texture,
-        roughness: 0.28,
-        metalness: 0.18,
+        roughness: 0.16,
+        metalness: 0.28,
         side: THREE.DoubleSide
       });
+      if (speciesType === 'tetra') {
+        bodyMat.emissive = new THREE.Color(0x0284c7);
+        bodyMat.emissiveIntensity = 0.45;
+      } else if (speciesType === 'discus') {
+        bodyMat.emissive = new THREE.Color(0x0891b2);
+        bodyMat.emissiveIntensity = 0.18;
+      } else if (speciesType === 'tang') {
+        bodyMat.emissive = new THREE.Color(0x1d4ed8);
+        bodyMat.emissiveIntensity = 0.12;
+      }
       const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
       bodyMesh.castShadow = true;
       fishObj.add(bodyMesh);
@@ -1540,9 +1559,9 @@
         map: texture,
         alphaMap: finRayTex,
         transparent: true,
-        opacity: 0.88,
-        roughness: 0.35,
-        metalness: 0.1,
+        opacity: 0.92,
+        roughness: 0.22,
+        metalness: 0.2,
         side: THREE.DoubleSide,
         depthWrite: false
       });
@@ -1850,10 +1869,10 @@
       }
     }
 
-    spawnFish('clownfish', 4);
-    spawnFish('tang', 3);
-    spawnFish('discus', 3);
-    spawnFish('tetra', 10);
+    spawnFish('clownfish', 3);
+    spawnFish('tang', 2);
+    spawnFish('discus', 2);
+    spawnFish('tetra', 7);
 
     // =========================================================================
     // FOOD & FEEDING SYSTEM (🍤)
