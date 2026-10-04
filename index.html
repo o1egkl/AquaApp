@@ -1,0 +1,1952 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Аквариум — Реалистичный подводный мир</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #020611;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      color: #e0f2fe;
+    }
+    #webgl-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    /* Glassmorphism UI */
+    .ui-container {
+      position: absolute;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    /* Top Header */
+    .header-bar {
+      top: 20px;
+      left: 24px;
+      right: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      background: rgba(10, 25, 47, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 16px;
+      padding: 12px 22px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 0 12px rgba(56, 189, 248, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      font-size: 26px;
+      animation: floatIcon 3s ease-in-out infinite;
+    }
+    @keyframes floatIcon {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-4px) rotate(6deg); }
+    }
+    .brand-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #38bdf8, #818cf8, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-text p {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    /* Top Action Buttons */
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+    }
+    .action-btn {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #e2e8f0;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    .action-btn:hover {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: rgba(56, 189, 248, 0.6);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35);
+    }
+    .action-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Bottom Control Dock */
+    .bottom-dock {
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10, 22, 40, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 20px;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 0 16px rgba(56, 189, 248, 0.1);
+      pointer-events: auto;
+    }
+    .dock-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dock-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #cbd5e1;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .dock-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #38bdf8;
+    }
+    .dock-btn.active {
+      background: rgba(56, 189, 248, 0.22);
+      border-color: rgba(56, 189, 248, 0.5);
+      color: #38bdf8;
+    }
+    .dock-divider {
+      width: 1px;
+      height: 24px;
+      background: rgba(148, 163, 184, 0.2);
+    }
+
+    /* Hint / Tip */
+    .interaction-hint {
+      position: absolute;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: rgba(226, 232, 240, 0.8);
+      background: rgba(0, 0, 0, 0.5);
+      padding: 6px 16px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+      animation: pulseHint 3s infinite ease-in-out;
+    }
+    @keyframes pulseHint {
+      0%, 100% { opacity: 0.65; }
+      50% { opacity: 1; }
+    }
+
+    /* Stats Panel */
+    .fish-info-card {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      background: rgba(10, 22, 40, 0.8);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 16px;
+      padding: 14px 18px;
+      font-size: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+      pointer-events: auto;
+      min-width: 180px;
+    }
+    .fish-info-title {
+      font-weight: 600;
+      color: #38bdf8;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .fish-info-item {
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      padding: 3px 0;
+    }
+    .fish-info-item span:last-child {
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+
+    /* Food Flake Ripple effect on Click */
+    .food-splash-indicator {
+      position: absolute;
+      pointer-events: none;
+      width: 32px;
+      height: 32px;
+      border: 2px solid rgba(56, 189, 248, 0.8);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0.2);
+      animation: rippleAnim 0.6s ease-out forwards;
+      z-index: 5;
+    }
+    @keyframes rippleAnim {
+      0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+    }
+
+    @media (max-width: 768px) {
+      .header-bar { top: 12px; left: 12px; right: 12px; }
+      .bottom-dock { bottom: 12px; padding: 6px 10px; gap: 8px; }
+      .dock-btn { padding: 6px 10px; font-size: 11px; }
+      .fish-info-card { display: none; }
+    }
+  </style>
+
+  <!-- Three.js & Controls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- Top bar -->
+  <div class="ui-container header-bar">
+    <div class="brand">
+      <div class="brand-icon">🐠</div>
+      <div class="brand-text">
+        <h1>Aquarium 3D Ultra</h1>
+        <p>Биотоп тропического рифа • Анатомические 3D-рыбы</p>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="action-btn" id="feed-btn">
+        <span>🍤</span> Покормить рыбок
+      </button>
+      <button class="action-btn" id="add-fish-btn">
+        <span>➕</span> Добавить рыбку
+      </button>
+      <button class="action-btn" id="sound-btn">
+        <span id="sound-icon">🔈</span> <span id="sound-text">Звук воды</span>
+      </button>
+      <button class="action-btn" id="download-btn" style="background: rgba(14, 165, 233, 0.35); border-color: #38bdf8;">
+        <span>💾</span> Скачать файл
+      </button>
+    </div>
+  </div>
+
+  <!-- Hint -->
+  <div class="interaction-hint">
+    ✨ Нажмите в любом месте аквариума, чтобы бросить корм • Зажмите ЛКМ для вращения камеры
+  </div>
+
+  <!-- Bottom Control Dock -->
+  <div class="ui-container bottom-dock">
+    <div class="dock-group">
+      <button class="dock-btn active" data-light="day">☀️ День</button>
+      <button class="dock-btn" data-light="sunset">🌅 Закат</button>
+      <button class="dock-btn" data-light="night">🌙 Неон / Ночь</button>
+    </div>
+    <div class="dock-divider"></div>
+    <div class="dock-group">
+      <button class="dock-btn active" data-cam="orbit">🎥 Орбита</button>
+      <button class="dock-btn" data-cam="follow">🐟 Следить за рыбкой</button>
+      <button class="dock-btn" data-cam="front">🔍 Фронт</button>
+    </div>
+    <div class="dock-divider"></div>
+    <div class="dock-group">
+      <button class="dock-btn" id="bubbles-toggle">🫧 Пузыри: Вкл</button>
+    </div>
+  </div>
+
+  <!-- Fish Info Card -->
+  <div class="ui-container fish-info-card">
+    <div class="fish-info-title">
+      <span>🌊</span> Обитатели аквариума
+    </div>
+    <div class="fish-info-item">
+      <span>Клоун-оцеллярис:</span>
+      <span id="count-clown">4</span>
+    </div>
+    <div class="fish-info-item">
+      <span>Голубой хирург (Дори):</span>
+      <span id="count-tang">3</span>
+    </div>
+    <div class="fish-info-item">
+      <span>Дискус бирюзовый:</span>
+      <span id="count-discus">3</span>
+    </div>
+    <div class="fish-info-item">
+      <span>Неоновые тетры:</span>
+      <span id="count-tetra">10</span>
+    </div>
+    <div class="fish-info-item" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 4px; padding-top: 4px;">
+      <span>Всего рыбок:</span>
+      <span id="count-total" style="color: #38bdf8; font-weight:700;">20</span>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       3D REALISTIC AQUARIUM SIMULATION ENGINE
+       - Anatomical Sculpted 3D Fish Bodies (Forehead, Snout, Lips, Flanks, Keel)
+       - Volumetric Contoured Fins with Fin-Ray Detailing & Translucency
+       - 3D Layered Eyes with Pupils & Clearcoat Cornea
+       - Photorealistic Procedural Scale Textures & Markings
+       - Natural Thrust-Driven Swimming Kinematics & Turning Body Curvature
+       - Aquatic Grass Swaying, Realistic Rocks, Pebbles & Caustics
+       ========================================================================= */
+
+    const TANK_WIDTH = 26;
+    const TANK_HEIGHT = 15;
+    const TANK_DEPTH = 14;
+
+    const canvas = document.getElementById('webgl-canvas');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x020d1a);
+    scene.fog = new THREE.FogExp2(0x06283d, 0.024);
+
+    const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 2, 28);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxPolarAngle = Math.PI / 2 + 0.08;
+    controls.minDistance = 6;
+    controls.maxDistance = 42;
+    controls.target.set(0, 0, 0);
+
+    // =========================================================================
+    // AUDIO SYNTHESIZER (Web Audio API - Pure procedural relaxing aquatic sounds)
+    // =========================================================================
+    let audioCtx = null;
+    let isSoundPlaying = false;
+    let waterSoundGain = null;
+
+    function initAudio() {
+      if (audioCtx) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.05;
+        b6 = white * 0.115926;
+      }
+
+      const whiteNoise = audioCtx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      whiteNoise.loop = true;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(320, audioCtx.currentTime);
+
+      waterSoundGain = audioCtx.createGain();
+      waterSoundGain.gain.setValueAtTime(0, audioCtx.currentTime);
+
+      whiteNoise.connect(filter);
+      filter.connect(waterSoundGain);
+      waterSoundGain.connect(audioCtx.destination);
+      whiteNoise.start();
+
+      setInterval(() => {
+        if (!isSoundPlaying || Math.random() > 0.4) return;
+        playBubblePop();
+      }, 700);
+    }
+
+    function playBubblePop() {
+      if (!audioCtx || !isSoundPlaying) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const now = audioCtx.currentTime;
+      const startFreq = 400 + Math.random() * 500;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(startFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(startFreq * 1.8, now + 0.12);
+
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.13);
+    }
+
+    function playFeedSound() {
+      if (!audioCtx || !isSoundPlaying) return;
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => playBubblePop(), i * 60);
+      }
+    }
+
+    // =========================================================================
+    // LIGHTING SETUP & MODES
+    // =========================================================================
+    const ambientLight = new THREE.AmbientLight(0x082f49, 1.25);
+    scene.add(ambientLight);
+
+    const mainSunLight = new THREE.DirectionalLight(0xe0f2fe, 2.5);
+    mainSunLight.position.set(0, TANK_HEIGHT + 8, 2);
+    mainSunLight.castShadow = true;
+    mainSunLight.shadow.mapSize.width = 2048;
+    mainSunLight.shadow.mapSize.height = 2048;
+    mainSunLight.shadow.bias = -0.001;
+    scene.add(mainSunLight);
+
+    const floorBounceLight = new THREE.DirectionalLight(0x0ea5e9, 0.6);
+    floorBounceLight.position.set(0, -TANK_HEIGHT, 0);
+    scene.add(floorBounceLight);
+
+    const aquaPointLight1 = new THREE.PointLight(0x38bdf8, 1.2, 25);
+    aquaPointLight1.position.set(-6, 3, 2);
+    scene.add(aquaPointLight1);
+
+    const aquaPointLight2 = new THREE.PointLight(0x10b981, 0.9, 25);
+    aquaPointLight2.position.set(7, -2, -2);
+    scene.add(aquaPointLight2);
+
+    function applyLightingMode(mode) {
+      if (mode === 'day') {
+        scene.background.set(0x020d1a);
+        scene.fog.color.set(0x06283d);
+        scene.fog.density = 0.024;
+        ambientLight.color.set(0x082f49);
+        ambientLight.intensity = 1.25;
+        mainSunLight.color.set(0xe0f2fe);
+        mainSunLight.intensity = 2.5;
+        aquaPointLight1.color.set(0x38bdf8);
+        aquaPointLight2.color.set(0x10b981);
+        waterMesh.material.color.set(0x38bdf8);
+      } else if (mode === 'sunset') {
+        scene.background.set(0x120817);
+        scene.fog.color.set(0x271329);
+        scene.fog.density = 0.026;
+        ambientLight.color.set(0x3b112c);
+        ambientLight.intensity = 1.0;
+        mainSunLight.color.set(0xfb923c);
+        mainSunLight.intensity = 2.0;
+        aquaPointLight1.color.set(0xf43f5e);
+        aquaPointLight2.color.set(0xf59e0b);
+        waterMesh.material.color.set(0xfb7185);
+      } else if (mode === 'night') {
+        scene.background.set(0x010409);
+        scene.fog.color.set(0x030a1c);
+        scene.fog.density = 0.032;
+        ambientLight.color.set(0x031738);
+        ambientLight.intensity = 0.6;
+        mainSunLight.color.set(0x38bdf8);
+        mainSunLight.intensity = 1.0;
+        aquaPointLight1.color.set(0x818cf8);
+        aquaPointLight2.color.set(0x06b6d4);
+        waterMesh.material.color.set(0x4f46e5);
+      }
+    }
+
+    // =========================================================================
+    // PROCEDURAL TEXTURE GENERATORS (Fine Scales, Caustics, Markings)
+    // =========================================================================
+
+    // Caustics Texture
+    const causticsCanvas = document.createElement('canvas');
+    causticsCanvas.width = 512;
+    causticsCanvas.height = 512;
+    const causticsCtx = causticsCanvas.getContext('2d');
+    const causticsTexture = new THREE.CanvasTexture(causticsCanvas);
+    causticsTexture.wrapS = THREE.RepeatWrapping;
+    causticsTexture.wrapT = THREE.RepeatWrapping;
+    causticsTexture.repeat.set(3, 2);
+
+    function updateCaustics(time) {
+      const w = causticsCanvas.width;
+      const h = causticsCanvas.height;
+      causticsCtx.fillStyle = '#011528';
+      causticsCtx.fillRect(0, 0, w, h);
+
+      causticsCtx.fillStyle = 'rgba(70, 215, 255, 0.12)';
+      causticsCtx.lineWidth = 4;
+      causticsCtx.strokeStyle = 'rgba(150, 240, 255, 0.4)';
+
+      for (let i = 0; i < 28; i++) {
+        const x = (Math.sin(i * 1.3 + time * 0.8) * 0.4 + 0.5) * w;
+        const y = (Math.cos(i * 1.7 + time * 0.7) * 0.4 + 0.5) * h;
+        const radius = 35 + Math.sin(time * 2 + i) * 15;
+
+        causticsCtx.beginPath();
+        causticsCtx.arc(x, y, radius, 0, Math.PI * 2);
+        causticsCtx.stroke();
+        causticsCtx.fill();
+      }
+      causticsTexture.needsUpdate = true;
+    }
+
+    // Sand Texture
+    function createSandTexture() {
+      const c = document.createElement('canvas');
+      c.width = 1024;
+      c.height = 1024;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#b8a686';
+      ctx.fillRect(0, 0, 1024, 1024);
+
+      for (let i = 0; i < 160000; i++) {
+        const x = Math.random() * 1024;
+        const y = Math.random() * 1024;
+        const shade = Math.random() * 40 - 20;
+        const r = Math.floor(184 + shade);
+        const g = Math.floor(166 + shade * 0.9);
+        const b = Math.floor(134 + shade * 0.8);
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillRect(x, y, 1.5, 1.5);
+      }
+
+      ctx.fillStyle = 'rgba(120, 100, 75, 0.15)';
+      for (let y = 0; y < 1024; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        for (let x = 0; x <= 1024; x += 30) {
+          ctx.lineTo(x, y + Math.sin(x * 0.02) * 14);
+        }
+        ctx.lineTo(1024, y + 20);
+        ctx.lineTo(0, y + 20);
+        ctx.fill();
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(4, 3);
+      return tex;
+    }
+
+    // Helper: Draw micro-scale pattern onto canvas
+    function drawMicroScales(ctx, w, h, opacity = 0.12) {
+      ctx.save();
+      ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+      ctx.lineWidth = 1;
+      const step = 9;
+      for (let y = 10; y < h - 10; y += step) {
+        const offset = ((y / step) % 2) * (step / 2);
+        for (let x = 10; x < w - 10; x += step) {
+          ctx.beginPath();
+          ctx.arc(x + offset, y, step * 0.65, 0, Math.PI);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+
+    // 1. Photorealistic Clownfish Skin (Amphiprion ocellaris)
+    function createClownfishTexture() {
+      const c = document.createElement('canvas');
+      c.width = 1024;
+      c.height = 512;
+      const ctx = c.getContext('2d');
+
+      // Vivid natural orange gradient (darker dorsal, warm peach belly)
+      const grad = ctx.createLinearGradient(0, 0, 0, 512);
+      grad.addColorStop(0, '#c2410c');   // Darker amber spine
+      grad.addColorStop(0.35, '#ea580c'); // Vivid orange flank
+      grad.addColorStop(0.85, '#f97316'); // Bright belly
+      grad.addColorStop(1, '#fed7aa');    // Soft peach ventral edge
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1024, 512);
+
+      // Micro scales
+      drawMicroScales(ctx, 1024, 512, 0.14);
+
+      // 3 Iconic White Bars with delicate organic contours & dark shadow borders
+      const bands = [
+        { cx: 300, w: 90, curve: 35 },  // Head band
+        { cx: 560, w: 105, curve: 45 }, // Middle band (with characteristic forward triangle peak)
+        { cx: 840, w: 75, curve: 20 }   // Tail peduncle band
+      ];
+
+      bands.forEach(b => {
+        // Deep charcoal/black outer rim
+        ctx.fillStyle = '#0a0a0c';
+        ctx.beginPath();
+        ctx.ellipse(b.cx, 256, (b.w / 2) + 12, 230, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Creamy pure white core with gradient
+        const wGrad = ctx.createLinearGradient(b.cx - b.w, 0, b.cx + b.w, 0);
+        wGrad.addColorStop(0, '#e2e8f0');
+        wGrad.addColorStop(0.5, '#ffffff');
+        wGrad.addColorStop(1, '#e2e8f0');
+        ctx.fillStyle = wGrad;
+        ctx.beginPath();
+        ctx.ellipse(b.cx, 256, b.w / 2, 220, 0, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Operculum (gill cover) crease shadow
+      ctx.strokeStyle = 'rgba(67, 20, 7, 0.45)';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(380, 260, 110, -0.6, 0.6);
+      ctx.stroke();
+
+      // Fin margins (black tip border)
+      ctx.fillStyle = '#09090b';
+      ctx.fillRect(990, 0, 34, 512);
+
+      const tex = new THREE.CanvasTexture(c);
+      return tex;
+    }
+
+    // 2. Photorealistic Blue Tang Skin (Paracanthurus hepatus / Dory)
+    function createTangTexture() {
+      const c = document.createElement('canvas');
+      c.width = 1024;
+      c.height = 512;
+      const ctx = c.getContext('2d');
+
+      // Royal velvety sapphire blue
+      const grad = ctx.createLinearGradient(0, 0, 0, 512);
+      grad.addColorStop(0, '#0f2b74');
+      grad.addColorStop(0.4, '#1d4ed8');
+      grad.addColorStop(0.7, '#2563eb');
+      grad.addColorStop(1, '#1e3a8a');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1024, 512);
+
+      drawMicroScales(ctx, 1024, 512, 0.1);
+
+      // Iconic Black Palette Swirl pattern
+      ctx.fillStyle = '#090d16';
+      ctx.beginPath();
+      ctx.moveTo(240, 120);
+      ctx.bezierCurveTo(450, 60, 720, 80, 820, 200);
+      ctx.bezierCurveTo(860, 260, 810, 350, 680, 340);
+      ctx.bezierCurveTo(520, 330, 480, 190, 320, 200);
+      ctx.bezierCurveTo(240, 210, 220, 140, 240, 120);
+      ctx.closePath();
+      ctx.fill();
+
+      // Yellow Tail Fin Wedge
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.moveTo(760, 140);
+      ctx.lineTo(1024, 40);
+      ctx.lineTo(1024, 472);
+      ctx.lineTo(760, 372);
+      ctx.closePath();
+      ctx.fill();
+
+      // Blue outer fin edging on tail
+      ctx.strokeStyle = '#1d4ed8';
+      ctx.lineWidth = 14;
+      ctx.stroke();
+
+      // Scalpel spine yellow highlight on caudal peduncle
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath();
+      ctx.ellipse(820, 256, 26, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      return new THREE.CanvasTexture(c);
+    }
+
+    // 3. Photorealistic Turquoise Discus Skin (Symphysodon)
+    function createDiscusTexture() {
+      const c = document.createElement('canvas');
+      c.width = 1024;
+      c.height = 1024;
+      const ctx = c.getContext('2d');
+
+      // Rose-terracotta to turquoise disc gradient
+      const grad = ctx.createRadialGradient(512, 512, 80, 512, 512, 512);
+      grad.addColorStop(0, '#06b6d4');
+      grad.addColorStop(0.5, '#0284c7');
+      grad.addColorStop(0.85, '#991b1b');
+      grad.addColorStop(1, '#0f172a');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1024, 1024);
+
+      drawMicroScales(ctx, 1024, 1024, 0.12);
+
+      // Intricate turquoise undulating labyrinth stripes
+      ctx.strokeStyle = '#67e8f9';
+      ctx.lineWidth = 14;
+      ctx.lineCap = 'round';
+      ctx.shadowColor = '#0891b2';
+      ctx.shadowBlur = 8;
+
+      for (let i = 180; i < 920; i += 68) {
+        ctx.beginPath();
+        ctx.moveTo(i, 80);
+        for (let y = 80; y < 940; y += 50) {
+          ctx.lineTo(i + Math.sin(y * 0.035 + i) * 32, y);
+        }
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+
+      // Vertical subtle dark stress bars
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.25)';
+      for (let i = 280; i < 880; i += 90) {
+        ctx.fillRect(i, 60, 36, 904);
+      }
+
+      return new THREE.CanvasTexture(c);
+    }
+
+    // 4. Photorealistic Neon Tetra Skin (Paracheirodon innesi)
+    function createTetraTexture() {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+
+      // Translucent silvery olive dorsal
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(0, 0, 512, 256);
+
+      // Vivid metallic electric cyan stripe (with glowing gradient)
+      const blueGrad = ctx.createLinearGradient(0, 60, 0, 120);
+      blueGrad.addColorStop(0, '#38bdf8');
+      blueGrad.addColorStop(0.5, '#00f7ff');
+      blueGrad.addColorStop(1, '#0284c7');
+      ctx.fillStyle = blueGrad;
+      ctx.fillRect(0, 65, 420, 48);
+
+      // Fiery fluorescent carmine red belly (posterior half)
+      const redGrad = ctx.createLinearGradient(0, 125, 0, 220);
+      redGrad.addColorStop(0, '#ef4444');
+      redGrad.addColorStop(0.6, '#dc2626');
+      redGrad.addColorStop(1, '#991b1b');
+      ctx.fillStyle = redGrad;
+      ctx.fillRect(190, 125, 322, 95);
+
+      // Silver reflective ventral belly front
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(40, 130, 150, 75);
+
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Fin Ray Texture for Translucent Ribbed Fins
+    function createFinRayTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.fillRect(0, 0, 256, 256);
+
+      // Fin rays (striated spines)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.lineWidth = 3;
+      for (let x = 12; x < 256; x += 18) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x + (x - 128) * 0.35, 256);
+        ctx.stroke();
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    const sandTexture = createSandTexture();
+    const clownTex = createClownfishTexture();
+    const tangTex = createTangTexture();
+    const discusTex = createDiscusTexture();
+    const tetraTex = createTetraTexture();
+    const finRayTex = createFinRayTexture();
+
+    // =========================================================================
+    // THE AQUARIUM STRUCTURE (Glass Tank, Wooden Cabinet & Lamp Fixture)
+    // =========================================================================
+    const tankGroup = new THREE.Group();
+    scene.add(tankGroup);
+
+    // Glass Tank Mesh
+    const glassGeometry = new THREE.BoxGeometry(TANK_WIDTH, TANK_HEIGHT, TANK_DEPTH);
+    const glassMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0x88ccff,
+      transmission: 0.92,
+      opacity: 1,
+      transparent: true,
+      roughness: 0.04,
+      ior: 1.48,
+      reflectivity: 0.8,
+      thickness: 1.5,
+      side: THREE.BackSide,
+      depthWrite: false
+    });
+    const glassMesh = new THREE.Mesh(glassGeometry, glassMaterial);
+    tankGroup.add(glassMesh);
+
+    // Water Surface plane
+    const waterGeom = new THREE.PlaneGeometry(TANK_WIDTH - 0.2, TANK_DEPTH - 0.2, 48, 48);
+    const waterMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      roughness: 0.1,
+      metalness: 0.2,
+      transparent: true,
+      opacity: 0.65,
+      side: THREE.DoubleSide
+    });
+    const waterMesh = new THREE.Mesh(waterGeom, waterMat);
+    waterMesh.rotation.x = -Math.PI / 2;
+    waterMesh.position.y = TANK_HEIGHT / 2 - 0.2;
+    tankGroup.add(waterMesh);
+
+    // Aluminum Rims & Overhead Lamp
+    const rimMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4, metalness: 0.8 });
+    const topRimGeom = new THREE.BoxGeometry(TANK_WIDTH + 0.6, 0.4, TANK_DEPTH + 0.6);
+    const topRim = new THREE.Mesh(topRimGeom, rimMat);
+    topRim.position.y = TANK_HEIGHT / 2 + 0.1;
+    tankGroup.add(topRim);
+
+    const botRimGeom = new THREE.BoxGeometry(TANK_WIDTH + 0.6, 0.6, TANK_DEPTH + 0.6);
+    const botRim = new THREE.Mesh(botRimGeom, rimMat);
+    botRim.position.y = -TANK_HEIGHT / 2 - 0.2;
+    tankGroup.add(botRim);
+
+    const lampGeom = new THREE.BoxGeometry(TANK_WIDTH - 4, 0.5, 3);
+    const lampMesh = new THREE.Mesh(lampGeom, rimMat);
+    lampMesh.position.set(0, TANK_HEIGHT / 2 + 1.2, 0);
+    tankGroup.add(lampMesh);
+
+    // Sandy Sea Bottom
+    const sandGeom = new THREE.PlaneGeometry(TANK_WIDTH - 0.1, TANK_DEPTH - 0.1, 64, 48);
+    const sandPos = sandGeom.attributes.position;
+    for (let i = 0; i < sandPos.count; i++) {
+      const x = sandPos.getX(i);
+      const y = sandPos.getY(i);
+      const zOffset = Math.sin(x * 0.4) * 0.45 + Math.cos(y * 0.5) * 0.35 + Math.sin(x * 1.2 + y * 0.8) * 0.15;
+      sandPos.setZ(i, zOffset);
+    }
+    sandGeom.computeVertexNormals();
+
+    const sandMat = new THREE.MeshStandardMaterial({
+      map: sandTexture,
+      roughness: 0.85,
+      metalness: 0.05
+    });
+    const sandMesh = new THREE.Mesh(sandGeom, sandMat);
+    sandMesh.rotation.x = -Math.PI / 2;
+    sandMesh.position.y = -TANK_HEIGHT / 2 + 0.3;
+    sandMesh.receiveShadow = true;
+    tankGroup.add(sandMesh);
+
+    // Caustics Overlay Projector plane
+    const causticsPlaneMat = new THREE.MeshBasicMaterial({
+      map: causticsTexture,
+      transparent: true,
+      opacity: 0.38,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const causticsMesh = new THREE.Mesh(sandGeom, causticsPlaneMat);
+    causticsMesh.rotation.x = -Math.PI / 2;
+    causticsMesh.position.y = -TANK_HEIGHT / 2 + 0.32;
+    tankGroup.add(causticsMesh);
+
+    // Volumetric Light Beams
+    const lightBeamsGroup = new THREE.Group();
+    scene.add(lightBeamsGroup);
+
+    const beamGeom = new THREE.CylinderGeometry(0.3, 2.2, TANK_HEIGHT, 16, 1, true);
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0x93c5fd,
+      transparent: true,
+      opacity: 0.07,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+
+    const beams = [];
+    for (let i = 0; i < 7; i++) {
+      const beam = new THREE.Mesh(beamGeom, beamMat);
+      beam.position.set(
+        (Math.random() - 0.5) * (TANK_WIDTH - 6),
+        0.5,
+        (Math.random() - 0.5) * (TANK_DEPTH - 4)
+      );
+      beam.rotation.z = (Math.random() - 0.5) * 0.2;
+      beam.rotation.x = (Math.random() - 0.5) * 0.15;
+      beam.baseOpacity = 0.04 + Math.random() * 0.05;
+      beam.pulseSpeed = 0.8 + Math.random() * 1.2;
+      lightBeamsGroup.add(beam);
+      beams.push(beam);
+    }
+
+    // Sculpted Rocks & Pebbles
+    const rockMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.85, metalness: 0.1 });
+    const mossMat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.9, metalness: 0.05 });
+
+    function createOrganicRock(radius, detail) {
+      const geom = new THREE.DodecahedronGeometry(radius, detail);
+      const pos = geom.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const vx = pos.getX(i);
+        const vy = pos.getY(i);
+        const vz = pos.getZ(i);
+        const noise = 1 + (Math.sin(vx * 2.5) * Math.cos(vy * 2.5) * Math.sin(vz * 2.5)) * 0.35;
+        pos.setXYZ(i, vx * noise, vy * (noise * 0.85), vz * noise);
+      }
+      geom.computeVertexNormals();
+      return geom;
+    }
+
+    const rockClusters = [
+      { x: -8, y: -TANK_HEIGHT / 2 + 1.8, z: -2, s: 2.8 },
+      { x: -6.5, y: -TANK_HEIGHT / 2 + 2.6, z: -3.5, s: 2.2 },
+      { x: -9.5, y: -TANK_HEIGHT / 2 + 1.2, z: 1.5, s: 1.8 },
+      { x: 7, y: -TANK_HEIGHT / 2 + 2.2, z: -1, s: 3.2 },
+      { x: 8.8, y: -TANK_HEIGHT / 2 + 1.5, z: 2.2, s: 2.0 },
+      { x: 5.2, y: -TANK_HEIGHT / 2 + 1.0, z: 3.2, s: 1.6 },
+      { x: 0, y: -TANK_HEIGHT / 2 + 1.1, z: -4, s: 2.0 }
+    ];
+
+    rockClusters.forEach((rc, idx) => {
+      const rockGeom = createOrganicRock(rc.s, 2);
+      const rockMesh = new THREE.Mesh(rockGeom, idx % 2 === 0 ? rockMat : mossMat);
+      rockMesh.position.set(rc.x, rc.y, rc.z);
+      rockMesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+      rockMesh.castShadow = true;
+      rockMesh.receiveShadow = true;
+      tankGroup.add(rockMesh);
+    });
+
+    const pebbleGeom = new THREE.SphereGeometry(0.35, 8, 8);
+    pebbleGeom.scale(1, 0.45, 1.2);
+    const pebbleColors = [0x334155, 0x64748b, 0x94a3b8, 0x475569, 0x78716c];
+
+    for (let i = 0; i < 65; i++) {
+      const pColor = pebbleColors[Math.floor(Math.random() * pebbleColors.length)];
+      const pMat = new THREE.MeshStandardMaterial({ color: pColor, roughness: 0.6, metalness: 0.1 });
+      const pebble = new THREE.Mesh(pebbleGeom, pMat);
+      const px = (Math.random() - 0.5) * (TANK_WIDTH - 3);
+      const pz = (Math.random() - 0.5) * (TANK_DEPTH - 3);
+      const scale = 0.5 + Math.random() * 0.9;
+      pebble.scale.set(scale, scale * 0.5, scale * (0.8 + Math.random() * 0.5));
+      pebble.position.set(px, -TANK_HEIGHT / 2 + 0.4, pz);
+      pebble.rotation.y = Math.random() * Math.PI * 2;
+      pebble.castShadow = true;
+      tankGroup.add(pebble);
+    }
+
+    // Dynamic Plants & Grass
+    const plantStems = [];
+    function createPlantBlade(height, width) {
+      const segs = 9;
+      const geom = new THREE.PlaneGeometry(width, height, 1, segs);
+      geom.translate(0, height / 2, 0);
+      return geom;
+    }
+
+    const plantBladeMat = new THREE.MeshStandardMaterial({
+      color: 0x22c55e,
+      roughness: 0.4,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.92
+    });
+    const darkGrassMat = new THREE.MeshStandardMaterial({
+      color: 0x15803d,
+      roughness: 0.4,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.92
+    });
+
+    const plantBushes = [
+      { x: -9.5, z: -3, count: 24, h: 7.5 },
+      { x: -7.5, z: 2.5, count: 18, h: 5.5 },
+      { x: 8.5, z: -2.5, count: 28, h: 8.0 },
+      { x: 6.0, z: 2.5, count: 16, h: 4.5 },
+      { x: 1.5, z: -4.5, count: 22, h: 6.5 },
+      { x: -2.0, z: -4.0, count: 20, h: 6.0 }
+    ];
+
+    plantBushes.forEach(bush => {
+      for (let i = 0; i < bush.count; i++) {
+        const bladeHeight = bush.h * (0.7 + Math.random() * 0.6);
+        const bladeWidth = 0.35 + Math.random() * 0.25;
+        const geom = createPlantBlade(bladeHeight, bladeWidth);
+        const mat = (i % 2 === 0) ? plantBladeMat : darkGrassMat;
+        const mesh = new THREE.Mesh(geom, mat);
+        const offsetX = (Math.random() - 0.5) * 2.2;
+        const offsetZ = (Math.random() - 0.5) * 2.2;
+        mesh.position.set(bush.x + offsetX, -TANK_HEIGHT / 2 + 0.3, bush.z + offsetZ);
+        mesh.rotation.y = Math.random() * Math.PI * 2;
+        mesh.castShadow = true;
+        tankGroup.add(mesh);
+
+        plantStems.push({
+          mesh: mesh,
+          geom: geom,
+          origPositions: geom.attributes.position.clone(),
+          swayOffset: Math.random() * Math.PI * 2,
+          speed: 1.2 + Math.random() * 0.8,
+          strength: 0.25 + Math.random() * 0.2
+        });
+      }
+    });
+
+    function updatePlants(time) {
+      for (let i = 0; i < plantStems.length; i++) {
+        const p = plantStems[i];
+        const pos = p.geom.attributes.position;
+        const orig = p.origPositions;
+        const currentForce = Math.sin(time * p.speed + p.swayOffset);
+
+        for (let j = 0; j < pos.count; j++) {
+          const y = orig.getY(j);
+          const bend = (y * y) * 0.04 * currentForce * p.strength;
+          pos.setX(j, orig.getX(j) + bend);
+          pos.setZ(j, orig.getZ(j) + Math.cos(time * 0.8 + p.swayOffset) * (y * 0.03));
+        }
+        pos.needsUpdate = true;
+      }
+    }
+
+    // Aerator Bubbles
+    let bubblesEnabled = true;
+    const BUBBLE_COUNT = 90;
+    const bubbleGeom = new THREE.SphereGeometry(0.12, 8, 8);
+    const bubbleMat = new THREE.MeshPhysicalMaterial({
+      color: 0xe0f2fe,
+      transmission: 0.9,
+      roughness: 0.05,
+      ior: 1.1,
+      transparent: true,
+      opacity: 0.85
+    });
+
+    const bubbleGroup = new THREE.Group();
+    scene.add(bubbleGroup);
+    const bubbles = [];
+    const aeratorSources = [
+      { x: -8.5, z: -3.5 },
+      { x: 8.0, z: -3.0 }
+    ];
+
+    for (let i = 0; i < BUBBLE_COUNT; i++) {
+      const bubble = new THREE.Mesh(bubbleGeom, bubbleMat);
+      resetBubble(bubble);
+      bubble.position.y = -TANK_HEIGHT / 2 + Math.random() * TANK_HEIGHT;
+      bubbleGroup.add(bubble);
+      bubbles.push(bubble);
+    }
+
+    function resetBubble(b) {
+      const source = aeratorSources[Math.floor(Math.random() * aeratorSources.length)];
+      b.position.x = source.x + (Math.random() - 0.5) * 0.8;
+      b.position.y = -TANK_HEIGHT / 2 + 0.4;
+      b.position.z = source.z + (Math.random() - 0.5) * 0.8;
+      b.speed = 2.5 + Math.random() * 2.2;
+      b.wobbleFreq = 4 + Math.random() * 4;
+      b.wobbleAmp = 0.06 + Math.random() * 0.06;
+      b.wobblePhase = Math.random() * Math.PI * 2;
+      const s = 0.5 + Math.random() * 1.1;
+      b.scale.set(s, s, s);
+    }
+
+    function updateBubbles(dt, time) {
+      if (!bubblesEnabled) {
+        bubbleGroup.visible = false;
+        return;
+      }
+      bubbleGroup.visible = true;
+      for (let i = 0; i < bubbles.length; i++) {
+        const b = bubbles[i];
+        b.position.y += b.speed * dt;
+        b.position.x += Math.sin(time * b.wobbleFreq + b.wobblePhase) * b.wobbleAmp * dt * 8;
+        b.position.z += Math.cos(time * b.wobbleFreq + b.wobblePhase) * b.wobbleAmp * dt * 8;
+        if (b.position.y > TANK_HEIGHT / 2 - 0.3) {
+          resetBubble(b);
+        }
+      }
+    }
+
+    // =========================================================================
+    // ADVANCED ANATOMICAL 3D FISH ENGINE
+    // - Sculpted fusiform body mesh (Egg/teardrop cross sections, snout, lips, peduncle)
+    // - Volumetric sculpted fins (Caudal, Dorsal, Anal, Pectoral wings, Pelvic rays)
+    // - Layered 3D realistic eyes with pupil, colored iris & corneal reflection
+    // - Turning spine curvature + traveling wave kinematics
+    // =========================================================================
+
+    function createSculptedFishBody(species) {
+      const segsZ = 36;   // Longitudinal slices along the spine (snout to tail)
+      const segsRad = 24; // Radial vertices around the fish body perimeter
+
+      const geom = new THREE.BufferGeometry();
+      const positions = [];
+      const uvs = [];
+      const indices = [];
+
+      // Length of fish model
+      const totalLength = 2.6;
+
+      for (let j = 0; j <= segsZ; j++) {
+        const s = j / segsZ; // 0.0 (snout/mouth) -> 1.0 (caudal peduncle)
+        const z = -totalLength / 2 + s * totalLength;
+
+        // Biological height & width profile functions
+        let h = 0;
+        let w = 0;
+        let yCenter = 0; // Curve spine vertically (arch of back vs belly drop)
+
+        if (species === 'clownfish') {
+          // Rounded friendly torpedo with high dorsal ridge and soft drooping belly
+          if (s < 0.12) {
+            // Snout / mouth taper
+            const st = s / 0.12;
+            h = 0.25 + 0.55 * Math.sin(st * Math.PI * 0.5);
+            w = 0.2 + 0.42 * Math.sin(st * Math.PI * 0.5);
+            yCenter = -0.05 * (1 - st);
+          } else if (s < 0.75) {
+            // Torso & abdomen
+            const st = (s - 0.12) / 0.63;
+            h = 0.8 + 0.38 * Math.sin(st * Math.PI);
+            w = 0.62 + 0.18 * Math.sin(st * Math.PI);
+            yCenter = -0.12 * Math.sin(st * Math.PI); // Belly hangs slightly below axis
+          } else {
+            // Caudal peduncle
+            const st = (s - 0.75) / 0.25;
+            h = 0.8 * (1 - st * 0.68);
+            w = 0.62 * (1 - st * 0.78);
+            yCenter = -0.12 * (1 - st);
+          }
+        } else if (species === 'tang') {
+          // Oval deep body, steep forehead, compressed flanks
+          if (s < 0.15) {
+            const st = s / 0.15;
+            h = 0.28 + 0.85 * Math.sin(st * Math.PI * 0.5);
+            w = 0.18 + 0.32 * Math.sin(st * Math.PI * 0.5);
+            yCenter = -0.08 * (1 - st);
+          } else if (s < 0.78) {
+            const st = (s - 0.15) / 0.63;
+            h = 1.13 + 0.45 * Math.sin(st * Math.PI);
+            w = 0.5 + 0.15 * Math.sin(st * Math.PI);
+            yCenter = 0.05 * Math.sin(st * Math.PI);
+          } else {
+            const st = (s - 0.78) / 0.22;
+            h = 1.13 * (1 - st * 0.75);
+            w = 0.5 * (1 - st * 0.82);
+            yCenter = 0.05 * (1 - st);
+          }
+        } else if (species === 'discus') {
+          // Spectacular tall disk shape (Symphysodon)
+          if (s < 0.15) {
+            const st = s / 0.15;
+            h = 0.4 + 1.6 * Math.sin(st * Math.PI * 0.5);
+            w = 0.15 + 0.25 * Math.sin(st * Math.PI * 0.5);
+          } else if (s < 0.82) {
+            const st = (s - 0.15) / 0.67;
+            h = 2.0 + 0.55 * Math.sin(st * Math.PI);
+            w = 0.4 + 0.08 * Math.sin(st * Math.PI);
+          } else {
+            const st = (s - 0.82) / 0.18;
+            h = 2.0 * (1 - st * 0.82);
+            w = 0.4 * (1 - st * 0.85);
+          }
+        } else {
+          // Neon Tetra: sleek minnow / characin torpedo
+          if (s < 0.15) {
+            const st = s / 0.15;
+            h = 0.18 + 0.42 * Math.sin(st * Math.PI * 0.5);
+            w = 0.15 + 0.3 * Math.sin(st * Math.PI * 0.5);
+          } else if (s < 0.75) {
+            const st = (s - 0.15) / 0.6;
+            h = 0.6 + 0.2 * Math.sin(st * Math.PI);
+            w = 0.45 + 0.12 * Math.sin(st * Math.PI);
+          } else {
+            const st = (s - 0.75) / 0.25;
+            h = 0.6 * (1 - st * 0.7);
+            w = 0.45 * (1 - st * 0.78);
+          }
+        }
+
+        // Generate radial points for this cross section
+        for (let i = 0; i <= segsRad; i++) {
+          const theta = (i / segsRad) * Math.PI * 2;
+          const cosT = Math.cos(theta);
+          const sinT = Math.sin(theta);
+
+          // Organic fish cross-section: egg/teardrop shape
+          // Narrower dorsal crest (top), rounder flanks, subtle ventral keel
+          const x = (w * 0.5) * sinT * (1.0 - 0.15 * cosT);
+          const y = yCenter + (h * 0.5) * cosT;
+
+          positions.push(x, y, z);
+          uvs.push(s, i / segsRad);
+        }
+      }
+
+      // Generate polygon indices
+      for (let j = 0; j < segsZ; j++) {
+        for (let i = 0; i < segsRad; i++) {
+          const row1 = j * (segsRad + 1);
+          const row2 = (j + 1) * (segsRad + 1);
+
+          indices.push(row1 + i, row2 + i, row1 + i + 1);
+          indices.push(row2 + i, row2 + i + 1, row1 + i + 1);
+        }
+      }
+
+      geom.setIndex(indices);
+      geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geom.computeVertexNormals();
+
+      return geom;
+    }
+
+    // Volumetric Sculpted Fins with natural curvature
+    function createSculptedFin(type, species) {
+      const geom = new THREE.BufferGeometry();
+      const positions = [];
+      const uvs = [];
+      const indices = [];
+
+      let segsU = 8;
+      let segsV = 4;
+
+      if (type === 'caudal') {
+        // Tail fan fin (X: lateral thickness, Y: vertical spread, Z: longitudinal flare)
+        for (let j = 0; j <= segsV; j++) {
+          const v = j / segsV; // 0 at base, 1 at trailing edge
+          const z = v * 1.1; // Extends backward
+          let heightSpread = 0.5 + v * 1.35;
+          if (species === 'tang') heightSpread = 0.6 + v * 1.5; // Lunate tips
+          if (species === 'discus') heightSpread = 0.8 + v * 1.7;
+
+          for (let i = 0; i <= segsU; i++) {
+            const u = (i / segsU) * 2 - 1; // -1 (bottom tip) to +1 (top tip)
+            let y = u * (heightSpread / 2);
+
+            // Scalloped trailing edge curve
+            let zCurve = z;
+            if (species === 'tang' || species === 'tetra') {
+              // Forked / indented middle
+              zCurve += (1 - Math.abs(u)) * (-0.2 * v);
+            } else {
+              // Rounded fan
+              zCurve += (1 - u * u) * (0.15 * v);
+            }
+
+            // Slight membrane thickness tapering to edge
+            const x = Math.sin(u * Math.PI) * (0.04 * (1 - v));
+
+            positions.push(x, y, zCurve);
+            uvs.push((u + 1) * 0.5, v);
+          }
+        }
+      } else if (type === 'dorsal') {
+        // Dorsal fin (Top ridge)
+        for (let j = 0; j <= segsV; j++) {
+          const v = j / segsV; // 0 at back body attach, 1 at fin crest
+          for (let i = 0; i <= segsU; i++) {
+            const u = i / segsU; // 0 (front) to 1 (rear)
+            const z = (u - 0.5) * 1.4;
+
+            // Arched crest curve
+            let finHeight = Math.sin(u * Math.PI) * 0.65;
+            if (species === 'discus') finHeight = Math.sin(u * Math.PI) * 1.1;
+            if (species === 'tang') finHeight = Math.sin(Math.pow(u, 0.7) * Math.PI) * 0.55;
+
+            const y = v * finHeight;
+            const x = (1 - v) * 0.03 * Math.sin(u * Math.PI);
+
+            positions.push(x, y, z);
+            uvs.push(u, v);
+          }
+        }
+      } else if (type === 'anal') {
+        // Anal fin (Rear underside)
+        for (let j = 0; j <= segsV; j++) {
+          const v = j / segsV;
+          for (let i = 0; i <= segsU; i++) {
+            const u = i / segsU;
+            const z = (u - 0.5) * 0.9;
+            const finHeight = Math.sin(u * Math.PI) * (species === 'discus' ? 0.9 : 0.45);
+            const y = -v * finHeight;
+            const x = (1 - v) * 0.02 * Math.sin(u * Math.PI);
+
+            positions.push(x, y, z);
+            uvs.push(u, v);
+          }
+        }
+      } else if (type === 'pectoral') {
+        // Pectoral fin (Graceful wing fan)
+        for (let j = 0; j <= segsV; j++) {
+          const v = j / segsV;
+          for (let i = 0; i <= segsU; i++) {
+            const u = i / segsU;
+            // Wing sweep
+            const z = v * 0.65 + (u - 0.5) * 0.2;
+            const y = (u - 0.5) * (0.35 + v * 0.35);
+            // Slight aerodynamic cup curvature
+            const x = Math.sin(u * Math.PI) * 0.05 + v * 0.08;
+
+            positions.push(x, y, z);
+            uvs.push(u, v);
+          }
+        }
+      }
+
+      for (let j = 0; j < segsV; j++) {
+        for (let i = 0; i < segsU; i++) {
+          const row1 = j * (segsU + 1);
+          const row2 = (j + 1) * (segsU + 1);
+
+          indices.push(row1 + i, row2 + i, row1 + i + 1);
+          indices.push(row2 + i, row2 + i + 1, row1 + i + 1);
+        }
+      }
+
+      geom.setIndex(indices);
+      geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geom.computeVertexNormals();
+
+      return geom;
+    }
+
+    // Complete Detailed Fish Assembly
+    function createDetailedFishMesh(speciesType, texture) {
+      const fishObj = new THREE.Group();
+
+      // 1. Sculpted Body
+      const bodyGeom = createSculptedFishBody(speciesType);
+      const bodyMat = new THREE.MeshStandardMaterial({
+        map: texture,
+        roughness: 0.28,
+        metalness: 0.18,
+        side: THREE.DoubleSide
+      });
+      const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
+      bodyMesh.castShadow = true;
+      fishObj.add(bodyMesh);
+
+      // 2. Translucent Ribbed Fins
+      const finMat = new THREE.MeshStandardMaterial({
+        map: texture,
+        alphaMap: finRayTex,
+        transparent: true,
+        opacity: 0.88,
+        roughness: 0.35,
+        metalness: 0.1,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+
+      // Tail / Caudal Fin
+      const tailGeom = createSculptedFin('caudal', speciesType);
+      const tailMesh = new THREE.Mesh(tailGeom, finMat);
+      tailMesh.position.set(0, 0, 1.25);
+      fishObj.add(tailMesh);
+
+      // Dorsal Fin
+      const dorsalGeom = createSculptedFin('dorsal', speciesType);
+      const dorsalMesh = new THREE.Mesh(dorsalGeom, finMat);
+      let dorsalY = 0.42;
+      let dorsalZ = -0.1;
+      if (speciesType === 'discus') { dorsalY = 1.05; dorsalZ = 0.05; }
+      else if (speciesType === 'tang') { dorsalY = 0.65; }
+      dorsalMesh.position.set(0, dorsalY, dorsalZ);
+      fishObj.add(dorsalMesh);
+
+      // Anal Fin
+      const analGeom = createSculptedFin('anal', speciesType);
+      const analMesh = new THREE.Mesh(analGeom, finMat);
+      let analY = -0.42;
+      let analZ = 0.45;
+      if (speciesType === 'discus') { analY = -1.05; analZ = 0.35; }
+      else if (speciesType === 'tang') { analY = -0.65; }
+      analMesh.position.set(0, analY, analZ);
+      fishObj.add(analMesh);
+
+      // Pectoral Fins (Left & Right)
+      const pectGeom = createSculptedFin('pectoral', speciesType);
+      const leftPect = new THREE.Mesh(pectGeom, finMat);
+      const rightPect = new THREE.Mesh(pectGeom, finMat);
+
+      let pectX = 0.32;
+      let pectY = -0.12;
+      let pectZ = -0.55;
+      if (speciesType === 'discus') { pectX = 0.22; pectY = -0.25; }
+      else if (speciesType === 'tang') { pectX = 0.28; }
+
+      leftPect.position.set(pectX, pectY, pectZ);
+      leftPect.rotation.set(0.2, 0.45, -0.3);
+      fishObj.add(leftPect);
+
+      rightPect.position.set(-pectX, pectY, pectZ);
+      rightPect.rotation.set(0.2, -0.45, 0.3);
+      fishObj.add(rightPect);
+
+      // Pelvic / Ventral Fins (Paired rays underneath chest)
+      const pelvicGeom = new THREE.ConeGeometry(0.04, speciesType === 'discus' ? 1.2 : 0.45, 6);
+      pelvicGeom.rotateX(-0.4);
+      pelvicGeom.translate(0, -0.2, 0);
+
+      const leftPelvic = new THREE.Mesh(pelvicGeom, finMat);
+      leftPelvic.position.set(0.12, speciesType === 'discus' ? -0.9 : -0.38, -0.4);
+      fishObj.add(leftPelvic);
+
+      const rightPelvic = new THREE.Mesh(pelvicGeom, finMat);
+      rightPelvic.position.set(-0.12, speciesType === 'discus' ? -0.9 : -0.38, -0.4);
+      fishObj.add(rightPelvic);
+
+      // 3. 3D Realistic Mouth / Lips
+      const mouthLipGeom = new THREE.TorusGeometry(0.1, 0.038, 8, 16);
+      const mouthMat = new THREE.MeshStandardMaterial({
+        color: speciesType === 'clownfish' ? 0xff8c42 : 0x1e293b,
+        roughness: 0.5
+      });
+      const mouthMesh = new THREE.Mesh(mouthLipGeom, mouthMat);
+      mouthMesh.position.set(0, -0.06, -1.28);
+      mouthMesh.scale.set(1, 0.7, 1);
+      fishObj.add(mouthMesh);
+
+      // 4. 3D Layered Glossy Realistic Eyes
+      const scleraGeom = new THREE.SphereGeometry(0.13, 16, 16);
+      scleraGeom.scale(1, 1, 0.6);
+
+      let irisColor = 0xf59e0b; // Amber-gold for Clownfish
+      if (speciesType === 'tang') irisColor = 0x1e3a8a;
+      else if (speciesType === 'discus') irisColor = 0xdc2626; // Ruby red
+      else if (speciesType === 'tetra') irisColor = 0x38bdf8;
+
+      const scleraMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
+      const irisGeom = new THREE.CylinderGeometry(0.08, 0.08, 0.04, 16);
+      irisGeom.rotateX(Math.PI / 2);
+      const irisMat = new THREE.MeshBasicMaterial({ color: irisColor });
+
+      const pupilGeom = new THREE.CylinderGeometry(0.045, 0.045, 0.05, 16);
+      pupilGeom.rotateX(Math.PI / 2);
+      const pupilMat = new THREE.MeshBasicMaterial({ color: 0x020202 });
+
+      // Corneal clearcoat lens bulge
+      const corneaGeom = new THREE.SphereGeometry(0.14, 16, 16);
+      corneaGeom.scale(1, 1, 0.65);
+      const corneaMat = new THREE.MeshPhysicalMaterial({
+        color: 0xffffff,
+        transmission: 0.95,
+        roughness: 0.02,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.05,
+        transparent: true
+      });
+
+      function buildEyeGroup(isRight) {
+        const eyeGroup = new THREE.Group();
+        const sclera = new THREE.Mesh(scleraGeom, scleraMat);
+        const iris = new THREE.Mesh(irisGeom, irisMat);
+        const pupil = new THREE.Mesh(pupilGeom, pupilMat);
+        const cornea = new THREE.Mesh(corneaGeom, corneaMat);
+
+        iris.position.z = -0.07;
+        pupil.position.z = -0.075;
+        cornea.position.z = -0.01;
+
+        eyeGroup.add(sclera);
+        eyeGroup.add(iris);
+        eyeGroup.add(pupil);
+        eyeGroup.add(cornea);
+
+        let eyeX = isRight ? 0.32 : -0.32;
+        let eyeY = 0.12;
+        let eyeZ = -0.92;
+        if (speciesType === 'discus') { eyeX = isRight ? 0.22 : -0.22; eyeY = 0.22; eyeZ = -0.85; }
+        else if (speciesType === 'tang') { eyeX = isRight ? 0.28 : -0.28; eyeY = 0.2; eyeZ = -0.9; }
+
+        eyeGroup.position.set(eyeX, eyeY, eyeZ);
+        eyeGroup.rotation.y = isRight ? 0.32 : -0.32;
+        return eyeGroup;
+      }
+
+      fishObj.add(buildEyeGroup(true));
+      fishObj.add(buildEyeGroup(false));
+
+      return {
+        root: fishObj,
+        bodyMesh: bodyMesh,
+        bodyGeom: bodyGeom,
+        origBodyPositions: bodyGeom.attributes.position.clone(),
+        tailMesh: tailMesh,
+        tailGeom: tailGeom,
+        origTailPositions: tailGeom.attributes.position.clone(),
+        leftPect: leftPect,
+        rightPect: rightPect
+      };
+    }
+
+    // =========================================================================
+    // NATURAL HYDRODYNAMIC FISH AI & SWIMMING KINEMATICS
+    // =========================================================================
+    const fishes = [];
+
+    class FishAgent {
+      constructor(species, texture, scale = 1.0) {
+        this.species = species;
+        this.data = createDetailedFishMesh(species, texture);
+        this.mesh = this.data.root;
+        this.mesh.scale.set(scale, scale, scale);
+        scene.add(this.mesh);
+
+        this.position = new THREE.Vector3(
+          (Math.random() - 0.5) * (TANK_WIDTH - 6),
+          (Math.random() - 0.5) * (TANK_HEIGHT - 5),
+          (Math.random() - 0.5) * (TANK_DEPTH - 5)
+        );
+        this.mesh.position.copy(this.position);
+
+        this.velocity = new THREE.Vector3(
+          (Math.random() - 0.5) * 2,
+          (Math.random() - 0.5) * 0.6,
+          (Math.random() - 0.5) * 2
+        ).normalize().multiplyScalar(1.2 + Math.random() * 0.8);
+
+        this.prevVelocity = this.velocity.clone();
+        this.turningCurvature = 0; // Dynamic arching of spine into turns
+
+        this.maxSpeed = (species === 'tetra') ? 2.8 : (species === 'discus' ? 1.6 : 2.2);
+        this.swimCycle = Math.random() * 100;
+        this.swimFreq = 4.2 + Math.random() * 1.8;
+
+        this.targetFood = null;
+      }
+
+      update(dt, time, foodList) {
+        this.swimCycle += dt * this.swimFreq * (this.velocity.length() / 1.4);
+
+        // 1. Food Seeking AI
+        if (foodList.length > 0) {
+          let closestFood = null;
+          let closestDist = Infinity;
+          for (let f of foodList) {
+            const d = this.position.distanceTo(f.position);
+            if (d < 15 && d < closestDist) {
+              closestDist = d;
+              closestFood = f;
+            }
+          }
+          if (closestFood) {
+            const foodDir = new THREE.Vector3().subVectors(closestFood.position, this.position).normalize();
+            this.velocity.lerp(foodDir.multiplyScalar(this.maxSpeed * 1.6), 0.08);
+
+            if (closestDist < 1.0) {
+              closestFood.eaten = true;
+              playFeedSound();
+            }
+          }
+        }
+
+        // 2. Random graceful wandering
+        if (Math.random() < 0.025) {
+          const wander = new THREE.Vector3(
+            (Math.random() - 0.5) * 2.2,
+            (Math.random() - 0.5) * 0.6,
+            (Math.random() - 0.5) * 2.2
+          ).normalize();
+          this.velocity.add(wander.multiplyScalar(0.45));
+        }
+
+        // 3. Tank Boundary Repulsion (Graceful turn away from glass & rocks)
+        const marginX = TANK_WIDTH / 2 - 2.5;
+        const marginY = TANK_HEIGHT / 2 - 2.0;
+        const marginZ = TANK_DEPTH / 2 - 2.5;
+
+        if (this.position.x > marginX) this.velocity.x -= 3.2 * dt;
+        if (this.position.x < -marginX) this.velocity.x += 3.2 * dt;
+        if (this.position.y > marginY) this.velocity.y -= 2.8 * dt;
+        if (this.position.y < -marginY) this.velocity.y += 3.8 * dt;
+        if (this.position.z > marginZ) this.velocity.z -= 3.2 * dt;
+        if (this.position.z < -marginZ) this.velocity.z += 3.2 * dt;
+
+        this.velocity.clampLength(0.8, this.maxSpeed);
+        this.position.addScaledVector(this.velocity, dt);
+        this.mesh.position.copy(this.position);
+
+        // 4. Turning Dynamics: calculate angular turn rate for body bending
+        const currentHeading = new THREE.Vector2(this.velocity.x, this.velocity.z).normalize();
+        const prevHeading = new THREE.Vector2(this.prevVelocity.x, this.prevVelocity.z).normalize();
+        const turnCross = prevHeading.x * currentHeading.y - prevHeading.y * currentHeading.x;
+        this.turningCurvature = THREE.MathUtils.lerp(this.turningCurvature, turnCross * 12.0, 0.1);
+        this.prevVelocity.copy(this.velocity);
+
+        // Smooth orientation
+        if (this.velocity.lengthSq() > 0.01) {
+          const lookTarget = this.position.clone().add(this.velocity);
+          const m = new THREE.Matrix4().lookAt(lookTarget, this.position, new THREE.Vector3(0, 1, 0));
+          const targetQuat = new THREE.Quaternion().setFromRotationMatrix(m);
+
+          // Bank slightly into turn
+          const bankQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -this.turningCurvature * 0.4);
+          targetQuat.multiply(bankQuat);
+
+          this.mesh.quaternion.slerp(targetQuat, 0.08);
+        }
+
+        // 5. High-Fidelity Hydrodynamic Spine Wave
+        // Head moves very little (< 5%), tail does 85% of movement, plus turning arch
+        const pos = this.data.bodyGeom.attributes.position;
+        const orig = this.data.origBodyPositions;
+        const wavePhase = this.swimCycle;
+
+        for (let i = 0; i < pos.count; i++) {
+          const z = orig.getZ(i);
+          // Normalized coordinate from snout (-1.3) to tail (+1.3)
+          const normZ = (z + 1.3) / 2.6; // 0 at head, 1 at tail
+
+          // Accelerating wave amplitude: (normZ)^1.8 ensures stable head
+          const waveAmp = 0.24 * Math.pow(normZ, 1.8);
+          const travelingWave = Math.sin(wavePhase - z * 3.4) * waveAmp;
+
+          // Turning curvature arch (fish bends into turn)
+          const turnBend = this.turningCurvature * Math.pow(normZ, 2.0) * 0.18;
+
+          pos.setX(i, orig.getX(i) + travelingWave + turnBend);
+        }
+        pos.needsUpdate = true;
+
+        // 6. Tail Fin Flexible Flap with Natural Phase Delay
+        const tailPos = this.data.tailGeom.attributes.position;
+        const origTail = this.data.origTailPositions;
+        const tailPhaseLag = wavePhase - 0.7;
+
+        for (let i = 0; i < tailPos.count; i++) {
+          const tz = origTail.getZ(i);
+          const flap = Math.sin(tailPhaseLag - tz * 2.8) * (0.28 + tz * 0.22);
+          tailPos.setX(i, origTail.getX(i) + flap + this.turningCurvature * 0.2);
+        }
+        tailPos.needsUpdate = true;
+
+        // 7. Pectoral Fins Rowing Flutter
+        const pectRow = Math.sin(this.swimCycle * 1.2) * 0.28;
+        this.data.leftPect.rotation.z = -0.3 + pectRow;
+        this.data.rightPect.rotation.z = 0.3 - pectRow;
+      }
+    }
+
+    // Spawn Population
+    function spawnFish(species, count) {
+      let tex = clownTex;
+      let scale = 1.0;
+      if (species === 'tang') { tex = tangTex; scale = 1.15; }
+      else if (species === 'discus') { tex = discusTex; scale = 1.25; }
+      else if (species === 'tetra') { tex = tetraTex; scale = 0.55; }
+
+      for (let i = 0; i < count; i++) {
+        fishes.push(new FishAgent(species, tex, scale * (0.88 + Math.random() * 0.24)));
+      }
+    }
+
+    spawnFish('clownfish', 4);
+    spawnFish('tang', 3);
+    spawnFish('discus', 3);
+    spawnFish('tetra', 10);
+
+    // =========================================================================
+    // FOOD & FEEDING SYSTEM (🍤)
+    // =========================================================================
+    const foodItems = [];
+    const foodGeom = new THREE.DodecahedronGeometry(0.12, 1);
+    const foodMat = new THREE.MeshStandardMaterial({
+      color: 0xd97706,
+      roughness: 0.9,
+      metalness: 0.1
+    });
+
+    function dropFood(targetPos = null) {
+      playFeedSound();
+
+      for (let i = 0; i < 7; i++) {
+        const flake = new THREE.Mesh(foodGeom, foodMat);
+        let startX, startZ;
+        if (targetPos) {
+          startX = targetPos.x + (Math.random() - 0.5) * 2;
+          startZ = targetPos.z + (Math.random() - 0.5) * 2;
+        } else {
+          startX = (Math.random() - 0.5) * (TANK_WIDTH - 6);
+          startZ = (Math.random() - 0.5) * (TANK_DEPTH - 6);
+        }
+
+        flake.position.set(startX, TANK_HEIGHT / 2 - 0.4, startZ);
+        flake.fallSpeed = 0.6 + Math.random() * 0.5;
+        flake.driftPhase = Math.random() * Math.PI * 2;
+        flake.eaten = false;
+        scene.add(flake);
+        foodItems.push(flake);
+      }
+    }
+
+    function updateFood(dt, time) {
+      for (let i = foodItems.length - 1; i >= 0; i--) {
+        const f = foodItems[i];
+        if (f.eaten) {
+          scene.remove(f);
+          foodItems.splice(i, 1);
+          continue;
+        }
+
+        f.position.y -= f.fallSpeed * dt;
+        f.position.x += Math.sin(time * 2 + f.driftPhase) * 0.2 * dt;
+        f.rotation.x += dt * 1.5;
+        f.rotation.y += dt * 2.0;
+
+        if (f.position.y < -TANK_HEIGHT / 2 + 0.4) {
+          scene.remove(f);
+          foodItems.splice(i, 1);
+        }
+      }
+    }
+
+    // =========================================================================
+    // INTERACTION & RAYCASTING (Click to feed)
+    // =========================================================================
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    window.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.ui-container')) return;
+
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(glassMesh);
+
+      const ripple = document.createElement('div');
+      ripple.className = 'food-splash-indicator';
+      ripple.style.left = `${e.clientX}px`;
+      ripple.style.top = `${e.clientY}px`;
+      document.body.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+
+      if (intersects.length > 0) {
+        dropFood(intersects[0].point);
+      } else {
+        dropFood();
+      }
+    });
+
+    // =========================================================================
+    // CAMERA MODES & UI HANDLERS
+    // =========================================================================
+    let currentCameraMode = 'orbit';
+    let followedFish = null;
+
+    document.querySelectorAll('[data-light]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('[data-light]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        applyLightingMode(e.target.dataset.light);
+      });
+    });
+
+    document.querySelectorAll('[data-cam]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('[data-cam]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentCameraMode = e.target.dataset.cam;
+
+        if (currentCameraMode === 'orbit') {
+          controls.enabled = true;
+        } else if (currentCameraMode === 'front') {
+          controls.enabled = true;
+          controls.target.set(0, 0, 0);
+          camera.position.set(0, 0, 26);
+        } else if (currentCameraMode === 'follow') {
+          followedFish = fishes[Math.floor(Math.random() * fishes.length)];
+          controls.enabled = false;
+        }
+      });
+    });
+
+    document.getElementById('feed-btn').addEventListener('click', () => dropFood());
+
+    document.getElementById('add-fish-btn').addEventListener('click', () => {
+      const types = ['clownfish', 'tang', 'discus', 'tetra'];
+      const chosen = types[Math.floor(Math.random() * types.length)];
+      spawnFish(chosen, 1);
+      updateFishStats();
+    });
+
+    function updateFishStats() {
+      let clown = 0, tang = 0, discus = 0, tetra = 0;
+      fishes.forEach(f => {
+        if (f.species === 'clownfish') clown++;
+        else if (f.species === 'tang') tang++;
+        else if (f.species === 'discus') discus++;
+        else if (f.species === 'tetra') tetra++;
+      });
+      document.getElementById('count-clown').innerText = clown;
+      document.getElementById('count-tang').innerText = tang;
+      document.getElementById('count-discus').innerText = discus;
+      document.getElementById('count-tetra').innerText = tetra;
+      document.getElementById('count-total').innerText = fishes.length;
+    }
+
+    const bubblesBtn = document.getElementById('bubbles-toggle');
+    bubblesBtn.addEventListener('click', () => {
+      bubblesEnabled = !bubblesEnabled;
+      bubblesBtn.innerText = bubblesEnabled ? '🫧 Пузыри: Вкл' : '🫧 Пузыри: Выкл';
+      bubblesBtn.classList.toggle('active', !bubblesEnabled);
+    });
+
+    const soundBtn = document.getElementById('sound-btn');
+    soundBtn.addEventListener('click', () => {
+      initAudio();
+      if (!isSoundPlaying) {
+        audioCtx.resume();
+        waterSoundGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        waterSoundGain.gain.exponentialRampToValueAtTime(0.06, audioCtx.currentTime + 1.5);
+        isSoundPlaying = true;
+        document.getElementById('sound-icon').innerText = '🔊';
+        document.getElementById('sound-text').innerText = 'Звук: Вкл';
+        soundBtn.classList.add('active');
+      } else {
+        waterSoundGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.6);
+        isSoundPlaying = false;
+        document.getElementById('sound-icon').innerText = '🔈';
+        document.getElementById('sound-text').innerText = 'Звук: Выкл';
+        soundBtn.classList.remove('active');
+      }
+    });
+
+    document.getElementById('download-btn').addEventListener('click', () => {
+      const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'Aquarium_3D_Ultra.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    });
+
+    // =========================================================================
+    // MAIN RENDER & ANIMATION LOOP
+    // =========================================================================
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const dt = Math.min(clock.getDelta(), 0.1);
+      const time = clock.getElapsedTime();
+
+      updateCaustics(time);
+
+      const waterPos = waterGeom.attributes.position;
+      for (let i = 0; i < waterPos.count; i++) {
+        const u = waterPos.getX(i);
+        const v = waterPos.getY(i);
+        const z = Math.sin(u * 0.8 + time * 1.5) * 0.08 + Math.cos(v * 0.8 + time * 1.2) * 0.08;
+        waterPos.setZ(i, z);
+      }
+      waterPos.needsUpdate = true;
+
+      for (let b of beams) {
+        b.material.opacity = b.baseOpacity + Math.sin(time * b.pulseSpeed) * 0.02;
+      }
+
+      updatePlants(time);
+      updateBubbles(dt, time);
+      updateFood(dt, time);
+
+      for (let fish of fishes) {
+        fish.update(dt, time, foodItems);
+      }
+
+      if (currentCameraMode === 'follow' && followedFish) {
+        const offset = followedFish.velocity.clone().normalize().multiplyScalar(-5).add(new THREE.Vector3(0, 1.5, 0));
+        const desiredPos = followedFish.position.clone().add(offset);
+        camera.position.lerp(desiredPos, 0.04);
+        camera.lookAt(followedFish.position);
+      } else {
+        controls.update();
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
