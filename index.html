@@ -1802,17 +1802,17 @@
         this.turningCurvature = THREE.MathUtils.lerp(this.turningCurvature, turnCross * 12.0, 0.1);
         this.prevVelocity.copy(this.velocity);
 
-        // Smooth orientation
+        // Smooth forward orientation (Head at -Z points along velocity)
         if (this.velocity.lengthSq() > 0.01) {
           const lookTarget = this.position.clone().add(this.velocity);
-          const m = new THREE.Matrix4().lookAt(lookTarget, this.position, new THREE.Vector3(0, 1, 0));
+          const m = new THREE.Matrix4().lookAt(this.position, lookTarget, new THREE.Vector3(0, 1, 0));
           const targetQuat = new THREE.Quaternion().setFromRotationMatrix(m);
 
           // Bank slightly into turn
-          const bankQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -this.turningCurvature * 0.4);
+          const bankQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), this.turningCurvature * 0.35);
           targetQuat.multiply(bankQuat);
 
-          this.mesh.quaternion.slerp(targetQuat, 0.08);
+          this.mesh.quaternion.slerp(targetQuat, 0.09);
         }
 
         // 5. High-Fidelity Hydrodynamic Spine Wave
