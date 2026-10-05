@@ -48,6 +48,7 @@
       left: calc(16px + env(safe-area-inset-left, 0px));
       right: calc(16px + env(safe-area-inset-right, 0px));
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 10px;
     }
@@ -141,7 +142,9 @@
       border-radius: 20px;
       padding: 8px 14px;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
+      justify-content: center;
       gap: 10px;
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(56, 189, 248, 0.1);
       pointer-events: auto;
@@ -152,7 +155,6 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      flex-shrink: 0;
     }
     .dock-btn {
       background: transparent;
@@ -281,38 +283,8 @@
       100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
     }
 
-    /* Mobile & Tablet Optimizations */
-    @media (max-width: 900px) {
-      .header-bar {
-        justify-content: space-between;
-      }
-      .brand-text p {
-        display: none;
-      }
-      .fish-info-card {
-        right: 12px;
-        bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-      }
-    }
-
-    /* Tablet & Medium Screens: streamlined single-row dock */
-    @media (max-width: 768px) and (min-width: 641px) {
-      .bottom-dock {
-        padding: 6px 12px;
-        gap: 8px;
-      }
-      .dock-btn {
-        padding: 7px 8px;
-        font-size: 11.5px;
-      }
-      .action-btn {
-        padding: 7px 10px;
-        font-size: 11.5px;
-      }
-    }
-
-    /* Mobile Screens */
-    @media (max-width: 640px) {
+    /* Mobile & Portrait Layout (Redmi, iPhone, Galaxy, Tablets in Portrait, Screens <= 860px) */
+    @media (max-width: 860px), (orientation: portrait) {
       .header-bar {
         top: calc(8px + env(safe-area-inset-top, 0px));
         left: calc(8px + env(safe-area-inset-left, 0px));
@@ -327,6 +299,7 @@
         padding: 5px 10px;
         border-radius: 12px;
         margin-right: 0;
+        flex: 0 1 auto;
       }
       .brand-icon {
         font-size: 18px;
@@ -362,6 +335,7 @@
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: 4px;
+        margin-top: 2px;
       }
       .action-btn {
         padding: 6px 2px;
@@ -379,7 +353,7 @@
       }
       .interaction-hint {
         position: fixed;
-        bottom: calc(102px + env(safe-area-inset-bottom, 10px));
+        bottom: calc(108px + env(safe-area-inset-bottom, 10px));
         font-size: 10px;
         padding: 5px 12px;
         max-width: 90vw;
@@ -391,11 +365,11 @@
         left: 50%;
         transform: translateX(-50%);
         width: calc(100% - 16px);
-        max-width: 420px;
-        padding: 7px 8px;
+        max-width: 440px;
+        padding: 8px 10px;
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 6px;
         border-radius: 18px;
         z-index: 15;
       }
@@ -413,9 +387,9 @@
       .dock-group-cam {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        max-width: 250px;
+        max-width: 260px;
         margin: 0 auto;
-        gap: 6px;
+        gap: 8px;
       }
       .dock-btn {
         width: 100%;
@@ -435,7 +409,7 @@
         position: fixed;
         right: 10px;
         left: 10px;
-        bottom: calc(106px + env(safe-area-inset-bottom, 10px));
+        bottom: calc(112px + env(safe-area-inset-bottom, 10px));
         min-width: unset;
         display: none;
         z-index: 20;
@@ -471,7 +445,7 @@
     }
 
     /* Mobile Landscape Optimization */
-    @media (max-height: 520px) {
+    @media (max-height: 520px) and (orientation: landscape) {
       .header-bar {
         top: calc(4px + env(safe-area-inset-top, 0px));
         left: calc(6px + env(safe-area-inset-left, 0px));
@@ -2338,7 +2312,8 @@
           followedFish = null;
           controls.enabled = true;
           controls.target.set(0, 0, 0);
-          camera.position.set(0, 0, 26);
+          const isPortrait = (window.innerWidth / window.innerHeight) < 1.0;
+          camera.position.set(0, 0, isPortrait ? 20 : 26);
           document.querySelectorAll('[data-cam]').forEach(b => b.classList.remove('active'));
           targetBtn.classList.add('active');
         }
@@ -2675,19 +2650,23 @@
       camera.aspect = aspect;
 
       if (aspect < 1.0) {
-        // Mobile portrait mode: adjust FOV & distance so the whole tank stays visible
-        const targetHFOV = 54;
-        const vFOV = 2 * Math.atan(Math.tan((targetHFOV * Math.PI / 180) / 2) / aspect) * (180 / Math.PI);
-        camera.fov = Math.min(Math.max(vFOV, 50), 80);
-        camera.position.set(0, 1.2, Math.max(30, 24 / aspect * 0.6));
-        controls.minDistance = 10;
-        controls.maxDistance = 55;
+        // Mobile portrait mode: frame the aquarium naturally so it fills the screen
+        camera.fov = 58;
+        if (currentCameraMode === 'front') {
+          camera.position.set(0, 0, 20);
+        }
+        controls.minDistance = 6;
+        controls.maxDistance = 38;
       } else {
         // Landscape & Desktop
         camera.fov = 48;
+        if (currentCameraMode === 'front') {
+          camera.position.set(0, 0, 26);
+        }
         controls.minDistance = 6;
         controls.maxDistance = 42;
       }
+      controls.target.set(0, 0, 0);
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
